@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 
 
+#define MPI_Printf	printf
 
 typedef struct Mode {
 
