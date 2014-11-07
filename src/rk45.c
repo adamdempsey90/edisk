@@ -22,9 +22,6 @@ int rk45_step_apply(Field *fld, double *t, double *h) {
 	*t += oldh;
 	y_2_fld(fld,y);
 
-	
-	
-//	printf("new h = %lg\n", *h);
 
 	return 1;
 
@@ -41,30 +38,26 @@ int new_h(double complex *yerr, double *h, double tol) {
 		peps = fmax(peps,fabs(yerr[i]));
 	}
 
-	MPI_Allreduce(&peps,&eps,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+//	MPI_Allreduce(&peps,&eps,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
 
-	eps /= tol;
+	eps = peps/tol;
+	
+	
 	if (eps>1.1) {
 		r = SAFETY*pow(eps,-1.0/(rk_order));
 		if (r < 0.2) r=0.2;
 		*h *= r;
-//	printf("%d\trel_eps = %lg,  r = %lg,   new h = %.12e\n",rank,eps,r,*h);
-
 		return 1;
 	}
 	else if (eps < .5) {
 		r = SAFETY*pow(eps,-1.0/(rk_order+1.0));
-//		if (r > 5) r=5;
 		if (r < 1) r=1;
 		*h *= r;
-//	printf("%d\trel_eps = %lg,  r = %lg,   new h = %.12e\n",rank,eps,r,*h);
 
 		return 0;
 	}
 	else {
 		r = 1;
-//	printf("%d\trel_eps = %lg,  r = %lg,   new h = %.12e\n",rank,eps,r,*h);
-
 		return 0;
 	}
 	
