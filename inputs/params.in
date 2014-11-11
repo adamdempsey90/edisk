@@ -1,15 +1,15 @@
 # Input Parameters #
 # Disk Parameters	#
-Nr = 2048
+Nr = 512
 m = 1
 rmin = .6
-rmax = 2.6
+rmax = 20.
 h0 = .05
-flare index = -1.5 
-alpha = .0001
+flare index = 0 
+alpha = 1e1
 sigma0 = .0001
 sigma index = -1.5
-omega0 = 1.0;
+omega0 = 1.0
 rot index =  -1.5
 # Star Parameters	#
 rsoft = .6
@@ -17,8 +17,8 @@ Ms = 1.0
 oms = 0
 # Time Parameters	#
 t0 = 0
-tau = 10
-endt = 200
-numf = 200
+tau = 0
+endt = 100
+numf = 100
 tol = 1e-8
 outputdir = outputs/

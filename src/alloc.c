@@ -1,5 +1,6 @@
 #include "edisk.h"
 
+void malloc_err(const char *err_str);
 
 void alloc_fld(Mode *fld) {
 	
@@ -11,6 +12,16 @@ void alloc_fld(Mode *fld) {
 	
 	fld->sig = (double complex *)malloc(sizeof(double complex)*(NR+2*NG));
 	if (fld->sig == NULL) malloc_err("sigma");
+	
+	fld->dtu = (double complex *)malloc(sizeof(double complex)*NR);
+	if (fld->dtu == NULL) malloc_err("dtu");
+	
+	fld->dtv = (double complex *)malloc(sizeof(double complex)*NR);
+	if (fld->dtv == NULL) malloc_err("dtv");
+	
+	fld->dts = (double complex *)malloc(sizeof(double complex)*NR);
+	if (fld->dts == NULL) malloc_err("dtsigma");
+	
 	
 	fld->r = (double *)malloc(sizeof(double)*NR);
 	if (fld->r == NULL) malloc_err("r");
@@ -27,9 +38,14 @@ void alloc_fld(Mode *fld) {
 	bfld->drv = (double *)malloc(sizeof(double)*NR);
 	if (bfld->drv == NULL) malloc_err("drvybar");
 	
+	bfld->dru = (double *)malloc(sizeof(double)*NR);
+	if (bfld->dru == NULL) malloc_err("drvxbar");
+	
 	bfld->omk = (double *)malloc(sizeof(double)*NR);
 	if (bfld->omk == NULL) malloc_err("omk");
-
+	
+	bfld->dlomk = (double *)malloc(sizeof(double)*NR);
+	if (bfld->dlomk == NULL) malloc_err("dlomk");
 		
 	Params->hor = (double *)malloc(sizeof(double)*NR);
 	if (Params->hor == NULL) malloc_err("H/R");
@@ -43,7 +59,7 @@ void alloc_fld(Mode *fld) {
 }
 
 
-void free_fld(Mode *fld, Bmode *bfld) {
+void free_fld(Mode *fld) {
 
 	free(fld->u);
 	free(fld->v);
@@ -58,7 +74,9 @@ void free_fld(Mode *fld, Bmode *bfld) {
 	free(bfld->sig);
 
 	free(bfld->drv);
+	free(bfld->dru);
 	free(bfld->omk);
+	free(bfld->dlomk);
 	
 	free(bfld);
 	
@@ -71,12 +89,12 @@ void free_fld(Mode *fld, Bmode *bfld) {
 }
 
 
-void malloc_err(char err_str[]) {
+void malloc_err(const char *err_str) {
 
 	MPI_Printf("\n\n\n");
 	MPI_Printf("Error Allocating:\n");
 	MPI_Printf(err_str);
 	MPI_Printf("\n\n\n");
 	
-	return
+	return;
 }

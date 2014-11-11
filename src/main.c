@@ -2,9 +2,17 @@
 #include <time.h>
 #include <unistd.h>
 
-int main(void) {
+
+void clear_rhs(Mode *fld);
+void print_time(double t);
+int check_termination(void);
+
+int main(int argc, char *argv[]) {
 	int i;
+	char inputdir[100];
 	clock_t tic, toc;
+	tic = clock();
+	
 
 	Mode *fld = (Mode *)malloc(sizeof(Mode));
 
@@ -12,16 +20,21 @@ int main(void) {
 	Params = (Parameters *)malloc(sizeof(Parameters));
 	
 	
-	read_inputs();
+	if (argc!=1) strcpy(inputdir,argv[1]);
+	else strcpy(inputdir,"inputs/");
+	printf("Reading Inputs from %s...\n",inputdir);
+	read_inputs(inputdir);
+	
 	alloc_fld(fld);
-	init(fld);
+	init_fld(fld);
 	
 	init_output(Params->outdir);
 	
 	init_rk45();
 
+	output_disk(fld->r);
 	output(fld);
-
+	
   	double	h = .1;
   	double 	t=Params->t0;
   	double dt;
@@ -34,7 +47,7 @@ int main(void) {
       
 		dt = t;
 
-		clear_rhs(Mode *fld);
+		clear_rhs(fld);
 		
 		int status = rk45_step_apply(&algogas,fld,&t,&h); 
 		numstep++;
@@ -48,7 +61,7 @@ int main(void) {
 		MPI_Printf ("\t step #%d, step size = %.5e, at t=%.5e \n", numstep,dt, t);
    
 #ifdef WAVEKILLBC
-		wavekillbc(fld,dt);
+//		wavekillbc(fld,dt);
 #endif
 	 
 	  
@@ -70,9 +83,10 @@ int main(void) {
 
 		}
     }
-   
+    free_rk45();
+   	free_fld(fld);
     toc = clock(); 
-    print_time( (double)(toc - tic) / CLOCKS_PER_SEC );}
+    print_time( (double)(toc - tic) / CLOCKS_PER_SEC );
 	MPI_Printf("# steps per second: %f\n", numstep /((double)(toc - tic) / CLOCKS_PER_SEC));
 	MPI_Printf("Average time step: %.2e\n", avgdt/numstep);
 	return 0;
@@ -83,7 +97,7 @@ void clear_rhs(Mode *fld) {
 	for(i=0;i<NR;i++) {
 		fld->dtu[i] = 0;
 		fld->dtv[i] = 0;
-		fld->dtsig[i] = 0;
+		fld->dts[i] = 0;
 	}
 
 	return;

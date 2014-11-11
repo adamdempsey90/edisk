@@ -1,17 +1,18 @@
-EXECUTABLE=planetdisk
-SOURCES=algo.c fourier.c boundary.c init.c main.c output.c readinputs.c utils.c viscosity.c rk45.c rk45_step.c
-HEADER=planetdisk.h defines.h rk45.h
+EXECUTABLE=edisk
+SOURCES=algo.c  init.c rk45.c rkf.c alloc.c main.c readinputs.c utils.c output.c
+HEADER=edisk.h rk45.h
 
-LDFLAGS=-lfftw3 -lm 
+LDFLAGS=-lm 
 
-CFLAGS=-c -Wall -O3 -Iinc
+CFLAGS=-c -Wall -O3 
+
 
 BIN=bin/
 SRC=src/
 IN=inputs/
 PY=src/pyutils/
 
-CC=mpicc
+CC=gcc-4.9
 
 #!!!!!DO NOT EDIT ANYTHING UNDER THIS LINE!!!!!
 OBJECTS=$(SOURCES:.c=.o)

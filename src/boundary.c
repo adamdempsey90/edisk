@@ -1,4 +1,4 @@
-
+#include "edisk.h"
 
 
 void wavekillbc(Mode *fld,double dt)

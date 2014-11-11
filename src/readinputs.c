@@ -11,6 +11,7 @@ void read_inputs(char *inputdir) {
 			alpha,
 			sig0,
 			indsig,
+			om0,
 			q,
 			rs,
 			ms,
@@ -63,7 +64,7 @@ void read_inputs(char *inputdir) {
 	Params->alpha = alpha;
 	Params->sig0 = sig0;
 	Params->indsig = indsig;
-	Params->omg0 = om0;
+	Params->om0 = om0;
 	Params->q = q;
 	Params->rs = rs;
 	Params->ms = ms;
@@ -73,7 +74,7 @@ void read_inputs(char *inputdir) {
 	Params->endt = endt;
 	Params->numf = numf;
 	Params->tol = tol;
-	Params->dr  = (rmax - rmin) / Nr;
+	Params->dr  = (rmax - rmin) / NR;
 	strcpy(Params->outdir,outdir);
 	
 	
@@ -124,7 +125,8 @@ void read_inputs(char *inputdir) {
 		Params->numf,
 		Params->tol,
 		Params->outdir);
-	
+		
+	output_params();
 	
 /* Send out data to rest of processors */
 	

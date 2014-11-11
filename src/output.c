@@ -1,16 +1,17 @@
-#include "planetdisk.h"
+#include "edisk.h"
 
 #define STRLEN 100
 /* Option to write output in real space or complex space */
 
 void write_header(FILE *f);
-void write_cheader(FILE *f);
+//void write_cheader(FILE *f);
 
+int rhsnum;
 
-
-void output(Field *fld) {
+void output(Mode *fld) {
+	int i;
 	FILE *f;
-	char fname[STRLEN];
+	char fname[STRLEN],name[STRLEN];
 	
 	
 	strcpy(fname,Params->outdir); 
@@ -43,8 +44,12 @@ void output(Field *fld) {
 	if (f == NULL) printf("ERROR: Couldn't open output file\n");
 
 	for(i=0;i<NR;i++) {
-		fprintf(f,"%lg\t%lg\%lg\t%lg\t%lg\%lg\n",fld->r[i],fld->u[i],fld->v[i],
-			fld->sig[i+istart],bfld->v[i],bfld->sig[i]);
+		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
+			fld->r[i],
+			creal(fld->u[i]),cimag(fld->u[i]),
+			creal(fld->v[i]),cimag(fld->v[i]),
+			creal(fld->sig[i+istart]),cimag(fld->sig[i+istart]),
+			bfld->v[i],bfld->omk[i],bfld->sig[i]);
 	}
 
 #endif
@@ -58,43 +63,106 @@ void output(Field *fld) {
 }
 
 
-void output_params(Field *fld) {
-	int i,Nxtot;
+void output_params(void) {
 	char fname[STRLEN];
-	
-	for(i=0, Nxtot=0;i<np;i++) Nxtot+=Nxproc[i];
-	
-	strcpy(fname,fld->Params->outdir);
+		
+	strcpy(fname,Params->outdir);
 	strcat(fname,"params.txt");
-	FILE *f = fopen(fname,"a");
-	fprintf(f,"Input Parameters: \n \
-		Nx = %d\n \
-		Ny = %d\n \
-		Lx = %lg\n \
-		Ly =  %lg\n \
-		dx = %lg\n \
-		xsoft =  %lg\n \
-		h =  %lg\n \
-		Mp =  %lg\n \
-		nu =  %lg\n \
-		q =  %lg\n \
-		omega =  %lg\n \
-		sig0 = %lg\n \
-		Time Parameters \n \
-		t0 =  %lg\n \
-		tau =  %lg\n \
-		endt =  %lg\n \
-		numf =  %d\n \
-		tol =  %lg\n",
-			  Nxtot, fld->Params->Ny, fld->Params->Lx, fld->Params->Ly, fld->Params->dx, fld->Params->xs, fld->Params->h, 
-			  fld->Params->Mp, fld->Params->nu, fld->Params->q, fld->Params->omega, fld->Params->sig0,
-			  fld->Params->t0, fld->Params->tau,   fld->Params->endt, fld->Params->numf,fld->Params->tol);
+	FILE *f = fopen(fname,"w");
+	
+	fprintf(f,"# Input Parameters #\n \
+		\t# Disk Parameters	#\n \
+		\tNr = %d\n \
+		\tm = %lg\n \
+		\trmin = %lg\n \
+		\trmax = %lg\n \
+		\th0 = %lg\n \
+		\tflare index = %lg\n \
+		\talpha = %lg\n \
+		\tsigma0 = %lg\n \
+		\tsigma index = %lg\n \
+		\tomega0 = %lg\n \
+		\trot index =  %lg\n \
+		\t# Star Parameters	#\n \
+		\trsoft = %lg\n \
+		\tMs = %lg\n \
+		\toms = %lg\n \
+		\t# Time Parameters	#\n \
+		\tt0 = %lg\n \
+		\ttau = %lg\n \
+		\tendt = %lg\n \
+		\tnumf = %d\n \
+		\ttol = %lg\n \
+		\toutputdir = %s\n",
+		NR,
+		Params->m,
+		Params->rmin,
+		Params->rmax,
+		Params->h,
+		Params->indfl,
+		Params->alpha,
+		Params->sig0,
+		Params->indsig,
+		Params->om0,
+		Params->q,
+		Params->rs,
+		Params->ms,
+		Params->oms,
+		Params->t0,
+		Params->tau,
+		Params->endt,
+		Params->numf,
+		Params->tol,
+		Params->outdir);
 	fclose(f);
 
 
 	return;
 
 }
+void output_disk(double *r) {
+	int i;
+	char fname[STRLEN];
+	strcpy(fname,Params->outdir);
+	strcat(fname,"disk.dat");
+	FILE *f = fopen(fname,"w");
+
+	for(i=0;i<NR;i++) {
+		fprintf(f,"%lg\t%lg\t%lg\t%lg\n",
+		r[i],
+		Params->hor[i],
+		Params->c2[i],
+		Params->nu[i]);
+	}
+	return;
+
+}
+
+void output_rhs(Mode *fld) {
+	int i;
+	FILE *f;
+	char fname[STRLEN],name[STRLEN];
+	
+	
+	strcpy(fname,Params->outdir); 
+
+	sprintf(name,"rhs_%d.dat",rhsnum);
+
+	strcat(fname,name); 
+	f = fopen(fname,"w");
+	for(i=0;i<NR;i++) {
+		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
+		fld->r[i],
+		creal(fld->dtu[i]),cimag(fld->dtu[i]),
+		creal(fld->dtv[i]),cimag(fld->dtv[i]),
+		creal(fld->dts[i]),cimag(fld->dts[i]));
+	}
+	rhsnum++;
+	fclose(f);
+	return;
+
+}
+
 void write_header(FILE *f) {
 
 
@@ -106,13 +174,14 @@ void write_header(FILE *f) {
 	return;
 }
 void init_output(char *dir) {
-	char idstr[50];	
+//	char idstr[50];	
+	outnum = 0; rhsnum=0;
 	size_t len = strlen(dir);
 	if (dir[len-1] != '/') dir[len] = '/';
 	mkdir(dir,0777);
-	sprintf(idstr,"id%d/",rank);
-	strcat(dir,idstr);
-	mkdir(dir,0777);
+// 	sprintf(idstr,"id%d/",rank);
+// 	strcat(dir,idstr);
+// 	mkdir(dir,0777);
 
 	return;
 }

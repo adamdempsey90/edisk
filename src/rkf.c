@@ -15,8 +15,8 @@ static double ec[6] = {1./360, 0, -(128./4275), -(2197./75240), 1./50, 2./55};
 double complex *k1,*k2,*k3,*k4,*k5;
 double complex *ytmp;
 
-void rk45_step( void *func, double complex *y, double complex *yerr, double complex *f, 
-									double t, double h, Field *fld) 
+void rk45_step( rhsfunc func, double complex *y, double complex *yerr, double complex *f, 
+									double t, double h, Mode *fld) 
 {
 /*	Runge-Kutta-Fehlberg Method */
 
@@ -24,34 +24,35 @@ void rk45_step( void *func, double complex *y, double complex *yerr, double comp
 	
 	
 	func(t,y,f,fld);
+//	output_rhs(fld);
 	for(i=0;i<rk_size;i++) {	
 		k1[i] = f[i];
 		ytmp[i] = y[i] + h*k1[i]*b1;
 	}
 	
 	func(t+a[0]*h,ytmp,f,fld);
-	
+//	output_rhs(fld);
 	for(i=0;i<rk_size;i++) {
 		k2[i] = f[i];
 		ytmp[i] =  y[i] + h*(k1[i]*b2[0]+k2[i]*b2[1]);
 	}
 	
 	func(t+a[1]*h,ytmp,f,fld);
-	
+//	output_rhs(fld);
 	for(i=0;i<rk_size;i++) {
 		k3[i] = f[i];
 		ytmp[i] = y[i] + h*(k1[i]*b3[0] +k2[i]*b3[1] + k3[i]*b3[2]);
 	}
 	
 	func(t+a[2]*h,ytmp,f,fld);
-	
+//	output_rhs(fld);
 	for(i=0;i<rk_size;i++) {
 		k4[i] = f[i];
 		ytmp[i] = y[i] + h*(k1[i]*b4[0] + k2[i]*b4[1] + k3[i]*b4[2] + k4[i]*b4[3]);
 	}
 
 	func(t+a[3]*h,ytmp,f,fld);
-	
+//	output_rhs(fld);
 	for(i=0;i<rk_size;i++) {
 		k5[i] = f[i];
 		ytmp[i] = y[i] + h*(k1[i]*b5[0] + k2[i]*b5[1] + k3[i]*b5[2] 
@@ -59,7 +60,7 @@ void rk45_step( void *func, double complex *y, double complex *yerr, double comp
 	}
 	
 	func(t+a[4]*h,ytmp,f,fld);
-	
+//	output_rhs(fld);
 	for(i=0;i<rk_size;i++) {
 		y[i] += h*(k1[i]*c[0] + k2[i]*c[1] + k3[i]*c[2] 
 									+ k4[i]*c[3] + k5[i]*c[4] + f[i]*c[5]);

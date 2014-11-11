@@ -3,9 +3,9 @@
 double complex *y, *yerr, *f, *oldy;
 
 
-int rk45_step_apply(void *func, Mode *fld,double *t, double *h) {
+int rk45_step_apply(rhsfunc func, Mode *fld,double *t, double *h) {
 	int status;
-	double tol = fld->Params->tol;
+	double tol = Params->tol;
 	double oldh;
 	fld_2_y(fld,oldy);
 	do {
@@ -35,14 +35,16 @@ int new_h(double complex *yerr, double *h, double tol) {
 
 	
 	for(i=0;i<rk_size;i++) {
+//		printf("%.6e\t%.6e+I%.6e\t%.6e\n",peps,creal(yerr[i]),cimag(yerr[i]),fabs(yerr[i]));
 		peps = fmax(peps,fabs(yerr[i]));
+		
 	}
 
 //	MPI_Allreduce(&peps,&eps,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
 // 	eps /= tol
 	eps = peps/tol;
 	
-	
+//	printf("%.12e\t%.12e\n", eps,tol);
 	if (eps>1.1) {
 		r = SAFETY*pow(eps,-1.0/(rk_order));
 		if (r < 0.2) r=0.2;
@@ -65,28 +67,12 @@ int new_h(double complex *yerr, double *h, double tol) {
 
 
 
-void fld_2_y(Mode *fld, double complex *q) {
-
-	memcpy(&q[0],&(fld->u[0]),sizeof(double complex)*NR);
-	memcpy(&q[NR],&(fld->v[0]),sizeof(double complex)*NR);
-	memcpy(&q[2*NR],&(fld->sig[istart]),sizeof(double complex)*NR);
-	
-	return;
-}
-void y_2_fld(Mode *fld, double complex *q) {
-
-	memcpy(&(fld->u[0]),&q[0],sizeof(double complex)*NR);
-	memcpy(&(fld->v[0]),&q[NR],sizeof(double complex)*NR);
-	memcpy(&(fld->sig[istart]),&q[2*NR],sizeof(double complex)*NR);
-	
-	return;
-}
-
 
 void init_rk45(void) {
 	
 	rk_size = 3*NR;
-	
+
+
 	y = (double complex *)malloc(sizeof(double complex)*rk_size);
 	f = (double complex *)malloc(sizeof(double complex)*rk_size);
 	yerr = (double complex *)malloc(sizeof(double complex)*rk_size);
