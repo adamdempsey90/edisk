@@ -4,27 +4,39 @@
 
 int main(void) {
 	int i;
-
 	clock_t tic, toc;
-	init_output(fld->Params->outdir);
-	allocate_field(fld);
+
+	Mode *fld = (Mode *)malloc(sizeof(Mode));
+
+	bfld = (Bmode *)malloc(sizeof(Bmode));
+	Params = (Parameters *)malloc(sizeof(Parameters));
+	
+	
+	read_inputs();
+	alloc_fld(fld);
+	init(fld);
+	
+	init_output(Params->outdir);
+	
 	init_rk45();
 
 	output(fld);
 
   	double	h = .1;
-  	double 	t=t0;
+  	double 	t=Params->t0;
   	double dt;
   	i=1;
 	int term_status=0;
 	int numstep=0; double avgdt=0;
 	
-	while (t < endt)
+	while (t < Params->endt)
     {
       
 		dt = t;
 
-		int status = rk45_step_apply(fld,&t,&h); 
+		clear_rhs(Mode *fld);
+		
+		int status = rk45_step_apply(&algogas,fld,&t,&h); 
 		numstep++;
 		 if (status == -1) {
 			MPI_Printf("ERROR With Step...\nTerminating Run...\n");
@@ -35,12 +47,12 @@ int main(void) {
 
 		MPI_Printf ("\t step #%d, step size = %.5e, at t=%.5e \n", numstep,dt, t);
    
-
+#ifdef WAVEKILLBC
 		wavekillbc(fld,dt);
-
+#endif
 	 
 	  
-		if( t >= fld->Params->t0 + i * (fld->Params->endt) / ((double) fld->Params->numf)) { 
+		if( t >= Params->t0 + i * (Params->endt) / ((double) Params->numf)) { 
 			 MPI_Printf ("\t\t OUTPUT %d, step size = %.5e, at t=%.5e \n", outnum,h,t);
 		
 			output(fld);
@@ -66,6 +78,16 @@ int main(void) {
 	return 0;
 }
 
+void clear_rhs(Mode *fld) {
+	int i;
+	for(i=0;i<NR;i++) {
+		fld->dtu[i] = 0;
+		fld->dtv[i] = 0;
+		fld->dtsig[i] = 0;
+	}
+
+	return;
+}
 int check_termination(void) {
 	if( access( "STOP", F_OK ) != -1 ) return -1;
 	else return 0;

@@ -1,16 +1,21 @@
-# Input Parameters
-Nx = 2048
-Ny = 16
-Lx = 60
-Ly = 30
-xsoft = .6
-h = 1
-Mp = .5
-nu = 0.01
-q = 1.5 
-omega = 1.0
-sig0 = 1.0
-# Time Parameters
+# Input Parameters #
+# Disk Parameters	#
+Nr = 2048
+m = 1
+rmin = .6
+rmax = 2.6
+h0 = .05
+flare index = -1.5 
+alpha = .0001
+sigma0 = .0001
+sigma index = -1.5
+omega0 = 1.0;
+rot index =  -1.5
+# Star Parameters	#
+rsoft = .6
+Ms = 1.0
+oms = 0
+# Time Parameters	#
 t0 = 0
 tau = 10
 endt = 200

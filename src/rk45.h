@@ -7,7 +7,7 @@
 int rk_size;
 double rk_order;
 
-void rk45_step( double complex *y, double complex *yerr, double complex *f, 
+void rk45_step( void *func, double complex *y, double complex *yerr, double complex *f, 
 									double t, double h, Field *fld);
 									
 void rk45_step_init(void);

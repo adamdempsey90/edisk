@@ -3,7 +3,7 @@
 double complex *y, *yerr, *f, *oldy;
 
 
-int rk45_step_apply(Field *fld, double *t, double *h) {
+int rk45_step_apply(void *func, Mode *fld,double *t, double *h) {
 	int status;
 	double tol = fld->Params->tol;
 	double oldh;
@@ -12,7 +12,7 @@ int rk45_step_apply(Field *fld, double *t, double *h) {
 	
 		memcpy(y,oldy,sizeof(double complex)*rk_size);
 		oldh = *h;
-		rk45_step(y, yerr, f, *t, *h, fld);
+		rk45_step(func,y, yerr, f, *t, *h, fld);
 		status = new_h(yerr,h,tol);
 	
 		if (*h < MIN_STEP) return -1;
@@ -39,7 +39,7 @@ int new_h(double complex *yerr, double *h, double tol) {
 	}
 
 //	MPI_Allreduce(&peps,&eps,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
-
+// 	eps /= tol
 	eps = peps/tol;
 	
 	
@@ -65,19 +65,19 @@ int new_h(double complex *yerr, double *h, double tol) {
 
 
 
-void fld_2_y(Field *fld, double complex *q) {
+void fld_2_y(Mode *fld, double complex *q) {
 
-	memcpy(&q[0],&(fld->u[istart]),sizeof(double complex)*Nx*NC);
-	memcpy(&q[Nx*NC],&(fld->v[istart]),sizeof(double complex)*Nx*NC);
-	memcpy(&q[2*Nx*NC],&(fld->sig[istart]),sizeof(double complex)*Nx*NC);
+	memcpy(&q[0],&(fld->u[0]),sizeof(double complex)*NR);
+	memcpy(&q[NR],&(fld->v[0]),sizeof(double complex)*NR);
+	memcpy(&q[2*NR],&(fld->sig[istart]),sizeof(double complex)*NR);
 	
 	return;
 }
-void y_2_fld(Field *fld, double complex *q) {
+void y_2_fld(Mode *fld, double complex *q) {
 
-	memcpy(&(fld->u[istart]),&q[0],sizeof(double complex)*Nx*NC);
-	memcpy(&(fld->v[istart]),&q[Nx*NC],sizeof(double complex)*Nx*NC);
-	memcpy(&(fld->sig[istart]),&q[2*Nx*NC],sizeof(double complex)*Nx*NC);
+	memcpy(&(fld->u[0]),&q[0],sizeof(double complex)*NR);
+	memcpy(&(fld->v[0]),&q[NR],sizeof(double complex)*NR);
+	memcpy(&(fld->sig[istart]),&q[2*NR],sizeof(double complex)*NR);
 	
 	return;
 }
@@ -85,7 +85,7 @@ void y_2_fld(Field *fld, double complex *q) {
 
 void init_rk45(void) {
 	
-	rk_size = Nx*NC*3;
+	rk_size = 3*NR;
 	
 	y = (double complex *)malloc(sizeof(double complex)*rk_size);
 	f = (double complex *)malloc(sizeof(double complex)*rk_size);

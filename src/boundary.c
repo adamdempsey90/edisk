@@ -1,7 +1,7 @@
 
 
 
-void wavekillbc(Modes *fld,double dt)
+void wavekillbc(Mode *fld,double dt)
 {
 	int i;
 	double R,tau,x,dtdtau;
@@ -23,9 +23,7 @@ void wavekillbc(Modes *fld,double dt)
 			dtdtau = dt/tau;
 			fld->u[i] = (fld->u[i])/(1+dtdtau );
 			fld->v[i] = (fld->v[i])/(1+dtdtau );
-			fld->sig[i] = (fld->sig[i])/(1+dtdtau);
-			fld->pres[i] = (fld->pres[i])/(1+dtdtau);
-				
+			fld->sig[i] = (fld->sig[i])/(1+dtdtau);				
 
 		}
 	}

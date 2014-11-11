@@ -15,7 +15,7 @@ static double ec[6] = {1./360, 0, -(128./4275), -(2197./75240), 1./50, 2./55};
 double complex *k1,*k2,*k3,*k4,*k5;
 double complex *ytmp;
 
-void rk45_step( double complex *y, double complex *yerr, double complex *f, 
+void rk45_step( void *func, double complex *y, double complex *yerr, double complex *f, 
 									double t, double h, Field *fld) 
 {
 /*	Runge-Kutta-Fehlberg Method */
