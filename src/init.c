@@ -8,7 +8,7 @@ void init_fld(Mode *fld) {
 	
 
 	istart = NG;
-	iend = NR-NG;
+	iend = NR+NG;
 	
 	fld->sig[0] = 0;
 	fld->sig[NR-NG] = 0;

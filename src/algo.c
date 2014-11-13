@@ -2,6 +2,7 @@
 
 void clear_rhs(Mode *fld);
 void algogas(double t,Mode *fld);
+
 void algo(double t, double complex *y, double complex *f, Mode *fld) {
 	y_2_fld(fld,y);
 	clear_rhs(fld);

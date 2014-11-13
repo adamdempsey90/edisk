@@ -4,7 +4,7 @@
 void set_bc(Mode *fld) {
 	int i;
 	
-	for(i=0;i<NG;i++) {
+	for(i=0;i<istart;i++) {
 	
 #ifdef ZEROBC
 		fld->u[i] = fld->u[2*istart-i];
