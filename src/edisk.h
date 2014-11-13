@@ -8,7 +8,14 @@
 #include <sys/stat.h>
  
 #define MPI_Printf	printf
-#define NG 1
+
+// Fourth Order Finite Difference Coefficients
+#define NG 2
+static double d1c[4] = {1./12,-2./3,2./3,-1./12};
+static double d2c[5] = {-1./12,4./3,-5./2,4./3,-1./12};
+
+//#define OUTRHS
+//#define WAVEKILLBC
 
 typedef struct Mode {
 
@@ -21,7 +28,7 @@ typedef struct Mode {
 
 typedef struct Bmode {
 	double *u, *v, *sig;
-	double *drv,*dru;
+	double *dru;
 	double *omk,*dlomk;
 } Bmode;
 
@@ -55,7 +62,7 @@ typedef struct Parameters {
 typedef void (*rhsfunc)(double , double complex *, double complex *, Mode *);
 
 
-void algogas(double t, double complex *y, double complex *f, Mode *fld);
+void algo(double t, double complex *y, double complex *f, Mode *fld);
 void init_fld(Mode *fld);
 void init_output(char *dir);
 void output_params(void);
@@ -72,8 +79,11 @@ void free_rk45(void);
 int rk45_step_apply(rhsfunc func, Mode *fld,double *t, double *h);
 void output_disk(double *r);
 void output_rhs(Mode *fld);
+void set_bc(Mode *fld);
+void wavekillbc(Mode *fld,double dt);
 
-int NR, istart, iend;
+
+int NR, istart, iend, NTOT;
 int outnum;
 
 Bmode *bfld;

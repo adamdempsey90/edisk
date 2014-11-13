@@ -3,7 +3,6 @@
 #include <unistd.h>
 
 
-void clear_rhs(Mode *fld);
 void print_time(double t);
 int check_termination(void);
 
@@ -47,9 +46,8 @@ int main(int argc, char *argv[]) {
       
 		dt = t;
 
-		clear_rhs(fld);
 		
-		int status = rk45_step_apply(&algogas,fld,&t,&h); 
+		int status = rk45_step_apply(&algo,fld,&t,&h); 
 		numstep++;
 		 if (status == -1) {
 			MPI_Printf("ERROR With Step...\nTerminating Run...\n");
@@ -61,7 +59,7 @@ int main(int argc, char *argv[]) {
 		MPI_Printf ("\t step #%d, step size = %.5e, at t=%.5e \n", numstep,dt, t);
    
 #ifdef WAVEKILLBC
-//		wavekillbc(fld,dt);
+		wavekillbc(fld,dt);
 #endif
 	 
 	  
@@ -92,16 +90,7 @@ int main(int argc, char *argv[]) {
 	return 0;
 }
 
-void clear_rhs(Mode *fld) {
-	int i;
-	for(i=0;i<NR;i++) {
-		fld->dtu[i] = 0;
-		fld->dtv[i] = 0;
-		fld->dts[i] = 0;
-	}
 
-	return;
-}
 int check_termination(void) {
 	if( access( "STOP", F_OK ) != -1 ) return -1;
 	else return 0;

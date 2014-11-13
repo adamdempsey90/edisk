@@ -1,15 +1,14 @@
 # Input Parameters #
 # Disk Parameters	#
-Nr = 512
+Nr = 4096 
 m = 1
-rmin = .6
-rmax = 20.
+rmin = .4
+rmax = 2
 h0 = .05
 flare index = 0 
-alpha = 1e1
+alpha = 0.
 sigma0 = .0001
-sigma index = -1.5
-omega0 = 1.0
+sigma index = -.5
 rot index =  -1.5
 # Star Parameters	#
 rsoft = .6

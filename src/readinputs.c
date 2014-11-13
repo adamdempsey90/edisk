@@ -11,7 +11,6 @@ void read_inputs(char *inputdir) {
 			alpha,
 			sig0,
 			indsig,
-			om0,
 			q,
 			rs,
 			ms,
@@ -40,7 +39,6 @@ void read_inputs(char *inputdir) {
 	fscanf(f,"alpha =  %lg \n",&alpha);
 	fscanf(f,"sigma0 =  %lg \n",&sig0);
 	fscanf(f,"sigma index =  %lg \n",&indsig);
-	fscanf(f,"omega0 =  %lg \n",&om0);
 	fscanf(f,"rot index =  %lg \n",&q);
 	fgets(garbage,sizeof(garbage),f);	// Star Parameters
 	fscanf(f,"rsoft =  %lg \n",&rs);
@@ -64,7 +62,6 @@ void read_inputs(char *inputdir) {
 	Params->alpha = alpha;
 	Params->sig0 = sig0;
 	Params->indsig = indsig;
-	Params->om0 = om0;
 	Params->q = q;
 	Params->rs = rs;
 	Params->ms = ms;
@@ -75,8 +72,9 @@ void read_inputs(char *inputdir) {
 	Params->numf = numf;
 	Params->tol = tol;
 	Params->dr  = (rmax - rmin) / NR;
+	Params->om0 = sqrt(Params->ms);
 	strcpy(Params->outdir,outdir);
-	
+	NTOT = NR+2*NG;
 	
    
   	mkdir(outdir,0777);
@@ -92,7 +90,6 @@ void read_inputs(char *inputdir) {
 		\talpha = %lg\n \
 		\tsigma0 = %lg\n \
 		\tsigma index = %lg\n \
-		\tomega0 = %lg\n \
 		\trot index =  %lg\n \
 		\t# Star Parameters	#\n \
 		\trsoft = %lg\n \
@@ -114,7 +111,6 @@ void read_inputs(char *inputdir) {
 		Params->alpha,
 		Params->sig0,
 		Params->indsig,
-		Params->om0,
 		Params->q,
 		Params->rs,
 		Params->ms,
