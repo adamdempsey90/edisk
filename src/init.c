@@ -4,20 +4,18 @@ void user_ic(Mode *fld);
 void init_fld(Mode *fld) {
 	int i;
 	double dr = Params->dr;
-	double r;
+	double r,lr;
 	
 
 	istart = NG;
 	iend = NR+NG;
 	
-	fld->sig[0] = 0;
-	fld->sig[NR-NG] = 0;
 	
 
 	for(i=0;i<NTOT;i++) {
-		r = (Params->rmin) + (.5 + i -NG ) * dr;
-		fld->r[i] = r;
-		
+		lr = (Params->rmin) + (.5 + i -NG ) * dr;
+		fld->r[i] = lr;
+		r = exp(lr);
 	
 		Params->hor[i] = (Params->h)*pow(r,Params->indfl);
 
@@ -56,13 +54,33 @@ void user_ic(Mode *fld) {
 */
 
 	int i;
-	double e0 = .3;
-	double complex w0 = 0;
+	double e0 = Params->e0;
+	double w0 = Params->w0;
+	double lr, r;
 	double complex E0 = e0 * cexp(I*w0);
 	for(i=0;i<NTOT;i++) {
+		lr = (fld->r[i]);
+		r = exp(lr);
 		
-		fld->u[i] += I*(bfld->v[i])*E0;
-		fld->v[i] += .5*(bfld->v[i])*E0;	
+		fld->u[i] += I*(bfld->v[i])*E0*exp(-lr*lr/(.2*.2));
+		fld->v[i] += .5*(bfld->v[i])*E0*exp(-lr*lr/(.2*.2));	
 	}
+
+/* Set B.C */	
+/* Grab the inner and outer b.c's from the initialized profile. */
+
+	u_in_bc = fld->u[istart];
+//	u_in_bc = 0;
+	u_out_bc = fld->u[iend-1];
+	
+	v_in_bc = fld->v[istart];
+//	v_in_bc = 0;
+	v_out_bc = fld->v[iend-1];
+	
+	s_in_bc = fld->sig[istart];
+//	s_in_bc = 0;
+	s_out_bc = fld->sig[iend-1];
+	
+	
 	return;
 }

@@ -35,7 +35,7 @@ void algogas(double t,Mode *fld) {
 	double complex divv;
 //	double vr,vph,drvr;
 	double dlomk,nusinds;
-	double dr,dr2,m, r,omk,omf;
+	double dr,dr2,m, r,r2,omk,omf;
 	double c2,nu;
 	
 	omf = Params->oms;
@@ -49,8 +49,8 @@ void algogas(double t,Mode *fld) {
 		it = i-istart;
 		m = fld->m;
 		
-		r = fld->r[i];
-	
+		r = exp(fld->r[i]);
+		r2 = r*r;
 
 
 		drs = d1c[0]*(fld->sig[i-2]) + d1c[1]*(fld->sig[i-1]) 
@@ -99,7 +99,7 @@ void algogas(double t,Mode *fld) {
 		v = fld->v[i];
 		sig = fld->sig[i];
 	
-		divv = u/r + dru - I*m*v/r;
+		divv = (u + dru - I*m*v)/r;
 		
 //		vr = bfld->u[i];
 //		vph = bfld->v[i];
@@ -116,23 +116,22 @@ void algogas(double t,Mode *fld) {
 /* 	Do u eqn first */
 
 
-		fld->dtu[it] += I*m*omk*u + 2*(omk+omf)*v - c2*drs;
+		fld->dtu[it] += I*m*omk*u + 2*(omk+omf)*v - c2*drs/r;
 
 
 
 /* Viscosity */
 
-// 		fld->dtu[i] += (Params->alpha)*(Params->h)*(Params->h)
-// 					*(dru/r + d2ru- (m*m*u/(r*r)));
+ 		fld->dtu[it] += nu*(d2ru - m*m*u)/r2;
 	
 	
-		fld->dtu[it] += 2*nu*d2ru + 2*nu*dru/r
-					-(I*nu*m/r)*(drv - v/r - I*m*u/r)
-					-(2*nu/(r*r))*(u-I*m*v)
-					+nu*r*2*dru*nusinds
-					-(I*nu*m/r)*omk*dlomk*sig
-					-(2.*nu/(3.*r))*(divv*nusinds + dru - u/r + r*d2ru - I*m*drv+I*m*v/r);
-					
+// 		fld->dtu[it] += 2*nu*d2ru + 2*nu*dru/r
+// 					-(I*nu*m/r)*(drv - v/r - I*m*u/r)
+// 					-(2*nu/(r*r))*(u-I*m*v)
+// 					+nu*r*2*dru*nusinds
+// 					-(I*nu*m/r)*omk*dlomk*sig
+// 					-(2.*nu/(3.*r))*(divv*nusinds + dru - u/r + r*d2ru - I*m*drv+I*m*v/r);
+// 					
 /* Stellar Potential indirect term */
 
 
@@ -144,14 +143,14 @@ void algogas(double t,Mode *fld) {
 		
 /* Viscosity */
 
-// 		fld->dtv[i] += (Params->alpha)*(Params->h)*(Params->h)
-// 					*(drv/r + d2rv- (m*m*v/(r*r)));
-		fld->dtv[it] += nu*(d2rv + drv/r - (v+I*m*u)/(r*r) - I*m*dru/r)
-					-I*m*nu*(u-I*m*v)*2/(r*r) 
-					+ nu*(r*drv-v-I*m*u)*nusinds
-					+ nu*omk*dlomk*drs
-					-(2.*nu/(3.*r))*(-I*m*divv);
-					
+ 		fld->dtv[it] += nu*(d2rv- m*m*v)/r2;
+
+// 		fld->dtv[it] += nu*(d2rv + drv/r - (v+I*m*u)/(r*r) - I*m*dru/r)
+// 					-I*m*nu*(u-I*m*v)*2/(r*r) 
+// 					+ nu*(r*drv-v-I*m*u)*nusinds
+// 					+ nu*omk*dlomk*drs
+// 					-(2.*nu/(3.*r))*(-I*m*divv);
+// 					
 					
 /* Stellar Potential indirect term */
 

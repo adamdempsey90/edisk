@@ -12,6 +12,8 @@ void read_inputs(char *inputdir) {
 			sig0,
 			indsig,
 			q,
+			e0,
+			w0,
 			rs,
 			ms,
 			oms,
@@ -40,6 +42,9 @@ void read_inputs(char *inputdir) {
 	fscanf(f,"sigma0 =  %lg \n",&sig0);
 	fscanf(f,"sigma index =  %lg \n",&indsig);
 	fscanf(f,"rot index =  %lg \n",&q);
+	fgets(garbage,sizeof(garbage),f);	// Initial Eccentricty
+	fscanf(f,"initial e = %lg \n",&e0);
+	fscanf(f,"initial a.o.p = %lg \n",&w0);
 	fgets(garbage,sizeof(garbage),f);	// Star Parameters
 	fscanf(f,"rsoft =  %lg \n",&rs);
 	fscanf(f,"Ms =  %lg \n",&ms);
@@ -63,6 +68,8 @@ void read_inputs(char *inputdir) {
 	Params->sig0 = sig0;
 	Params->indsig = indsig;
 	Params->q = q;
+	Params->e0 = e0;
+	Params->w0 = w0;
 	Params->rs = rs;
 	Params->ms = ms;
 	Params->oms = oms;
@@ -91,6 +98,9 @@ void read_inputs(char *inputdir) {
 		\tsigma0 = %lg\n \
 		\tsigma index = %lg\n \
 		\trot index =  %lg\n \
+		\t# Initial Eccentricity #\n \
+		\tinitial e = %lg\n \
+		\tinital a.o.p = %lg\n \
 		\t# Star Parameters	#\n \
 		\trsoft = %lg\n \
 		\tMs = %lg\n \
@@ -112,6 +122,8 @@ void read_inputs(char *inputdir) {
 		Params->sig0,
 		Params->indsig,
 		Params->q,
+		Params->e0,
+		Params->w0,
 		Params->rs,
 		Params->ms,
 		Params->oms,

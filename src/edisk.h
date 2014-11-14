@@ -16,6 +16,8 @@ static double d2c[5] = {-1./12,4./3,-5./2,4./3,-1./12};
 
 //#define OUTRHS
 //#define WAVEKILLBC
+//#define KILLIN
+//#define KILLOUT
 
 typedef struct Mode {
 
@@ -44,6 +46,8 @@ typedef struct Parameters {
 			indsig,
 			om0,
 			q,
+			e0,
+			w0,
 			rs,
 			ms,
 			oms,
@@ -85,6 +89,8 @@ void wavekillbc(Mode *fld,double dt);
 
 int NR, istart, iend, NTOT;
 int outnum;
-
+double complex	u_in_bc,u_out_bc,v_in_bc,v_out_bc,
+				s_in_bc,s_out_bc;
+				
 Bmode *bfld;
 Parameters *Params;

@@ -1,5 +1,5 @@
 class Field():
-	def __init__(self,t,outdir='',loadrhs=False,rhsnum=0,NG=1):	
+	def __init__(self,t,outdir='',loadrhs=False,rhsnum=0,NG=2):	
 		disk = loadtxt(outdir+'disk.dat')
 		self.r = disk[:,0]
 		self.nr = len(self.r)
@@ -15,7 +15,7 @@ class Field():
 		self.vyb = dat[:,7]
 		self.omk = dat[:,8]
 		self.dbar = dat[:,9]
-		self.E = (2*self.v - 1j*self.u) / (2*self.omk*self.r)
+		self.E = (2*self.v - 1j*self.u) / (2*self.vyb)
 		self.NG = NG
 		if loadrhs:
 			rhs = loadtxt('rhs_'+str(rhsnum)+'.dat')
@@ -86,6 +86,7 @@ class Field():
 			
 		if q=='E':
 			fig,(ax1,ax2,ax3,ax4)=subplots(4,sharex=True)
+			ax1.set_title('Eccentricity')
 			ax1.plot(self.r,real(self.E),linestyle)
 			ax1.set_ylabel('$e_x$')
 			ax2.plot(self.r,imag(self.E),linestyle)
@@ -122,73 +123,139 @@ class Field():
 		
 		show()
 		
+	def draw_ellipse(self,Nph):
+		pgrid = linspace(-pi,pi,Nph)
+		rr,pp = meshgrid(fld.r,pgrid)
+		# (Np , Nr)		
 		
+		vp = fld.v / fld.vyb 
 		
-def animate(q,t,dt=1,linestyle='-'):
-	fld0 = Field(0)
-	dat = zeros((fld0.nr,len(t)))
-	for i,j in enumerate(t):
-		print 'Loading time ',j
-		fld = Field(j)
-		if q=='u':
-			dat[:,i] = fld.u
-		if q=='v':
-			dat[:,i] = fld.u
-		if q=='sig':
-			dat[:,i] = fld.u
-		if q=='E':
-			dat[:,i] = fld.E
+		re = zeros((Nph,fld.nr))
+		for i in range(Nph):
+			# semi latus rectum
+			p = fld.r * (1 + real(vp*exp(-1j*pgrid[i])))**2
+			theta = pgrid[i] - angle(fld.E)
+			re[i,:] = p/(1+abs(fld.E)*cos(theta))
+		return re,pgrid
+		
+def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None):
+	if fld0==None:
+		fld0 = Field(0)
+	
+	if dat==None:
+		dat = zeros((fld0.nr,len(t)),dtype='complex')
+		for i,j in enumerate(t):
+			print 'Loading time ',j
+			fld = Field(j)
+			if q=='u':
+				dat[:,i] = fld.u
+			if q=='v':
+				dat[:,i] = fld.u
+			if q=='sig':
+				dat[:,i] = fld.u
+			if q=='E':
+				dat[:,i] = fld.E
 		
 	
 	if q=='u':
-		fig,(ax1,ax2)=subplots(2,sharex=True)
+		fig = figure()
+		ax1=fig.add_subplot(211)
+		ax2 = fig.add_subplot(212,sharex=ax1)
 		ax1.set_title('u')
 		ax1.set_ylabel('Re(u)')
 		ax2.set_ylabel('Im(u)')
 		ax2.set_xlabel('r')
-		
-		for i in range(len(t)):
-			fig.clf()
-			ax1.plot(fld0.r,real(dat[:,i]),linestyle)
-			ax2.plot(fld0.r,imag(dat[:,i]),linestyle)
+		l1,= ax1.plot(fld0.r,real(fld0.u),linestyle)
+		l2,= ax2.plot(fld0.r,imag(fld0.u),linestyle)
+		l1range = (real(dat).min(),real(dat).max())
+		l2range = (imag(dat).min(),imag(dat).max())
+		for i in range(dat.shape[1]):
+			ax1.set_title('v, t='+str(t[i]*dt))
+			l1.set_ydata(real(dat[:,i]))
+			l2.set_ydata(imag(dat[:,i]))
+			ax1.set_ylim(l1range)
+			ax2.set_ylim(l2range)
 			fig.canvas.draw()
+		
 			
 		
 	if q=='v':
-		fig,(ax1,ax2)=subplots(2,sharex=True)
-		ax1.set_title('v')
+		fig = figure()
+		ax1=fig.add_subplot(211)
+		ax2 = fig.add_subplot(212,sharex=ax1)
+		ax1.set_title('v, t=0')
 		ax1.set_ylabel('Re(v)')
 		ax2.set_ylabel('Im(v)')
 		ax2.set_xlabel('r')
-		for i in range(len(t)):
-			fig.clf()
-			ax1.plot(fld0.r,real(dat[:,i]),linestyle)
-			ax2.plot(fld0.r,imag(dat[:,i]),linestyle)
+		l1,= ax1.plot(fld0.r,real(fld0.v),linestyle)
+		l2,= ax2.plot(fld0.r,imag(fld0.v),linestyle)
+		l1range = (real(dat).min(),real(dat).max())
+		l2range = (imag(dat).min(),imag(dat).max())
+		for i in range(dat.shape[1]):
+			ax1.set_title('v, t='+str(t[i]*dt))
+			l1.set_ydata(real(dat[:,i]))
+			l2.set_ydata(imag(dat[:,i]))
+			ax1.set_ylim(l1range)
+			ax2.set_ylim(l2range)
 			fig.canvas.draw()
 	if q=='sig':
-		fig,(ax1,ax2)=subplots(2,sharex=True)
-		ax1.set_title('$\\sigma / <\\Sigma>$')
+		fig = figure()
+		ax1=fig.add_subplot(211)
+		ax2 = fig.add_subplot(212,sharex=ax1)
+		
+		ax1.set_title('$\\sigma / <\\Sigma>$, t=0')
 		ax1.set_ylabel('Re($\\sigma$)')
 		ax2.set_ylabel('Im($\\sigma$)')
 		ax2.set_xlabel('r')
-		for i in range(len(t)):
-			fig.clf()
-			ax1.plot(fld0.r,real(dat[:,i]),linestyle)
-			ax2.plot(fld0.r,imag(dat[:,i]),linestyle)
+		l1,= ax1.plot(fld0.r,real(fld0.sig),linestyle)
+		l2,= ax2.plot(fld0.r,imag(fld0.sig),linestyle)
+		
+		l1range = (real(dat).min(),real(dat).max())
+		l2range = (imag(dat).min(),imag(dat).max())
+		fig.canvas.draw()
+		for i in range(dat.shape[1]):
+			ax1.set_title('$\\sigma / <\\Sigma>$, t='+str(t[i]*dt))
+			l1.set_ydata(real(dat[:,i]))
+			l2.set_ydata(imag(dat[:,i]))
+			ax1.set_ylim(l1range)
+			ax2.set_ylim(l2range)
 			fig.canvas.draw()
 	if q=='E':
-		fig,(ax1,ax2,ax3,ax4)=subplots(4,sharex=True)
+		fig = figure()
+		ax1=fig.add_subplot(411)
+		ax2 = fig.add_subplot(412,sharex=ax1)
+		ax3 = fig.add_subplot(413,sharex=ax1)
+		ax4 = fig.add_subplot(414,sharex=ax1)
+		ax1.set_title('Eccentricity, t=0')
 		ax1.set_ylabel('$e_x$')
 		ax2.set_ylabel('$e_y$')
 		ax3.set_ylabel('e')
 		ax4.set_ylabel('$\\omega$')
 		ax4.set_xlabel('r')	
+		
+		l1,= ax1.plot(fld0.r,real(fld0.E),linestyle)
+		l2,= ax2.plot(fld0.r,imag(fld0.E),linestyle)
+		l3,= ax3.plot(fld0.r,abs(fld0.E),linestyle)
+		l4,= ax4.plot(fld0.r,angle(fld0.E),linestyle)
+		
+		l1range = (real(dat).min(),real(dat).max())
+		l2range = (imag(dat).min(),imag(dat).max())
+		l3range = (abs(dat).min(),abs(dat).max())
+		l4range = (angle(dat).min(),angle(dat).max())
+		fig.canvas.draw()
 		for i in range(len(t)):
-			fig.clf()
-			ax1.plot(fld0.r,real(dat[:,i]),linestyle)
-			ax2.plot(fld0.r,imag(dat[:,i]),linestyle)
-			ax3.plot(fld0.r,abs(dat[:,i]),linestyle)
-			ax4.plot(fld0.r,angle(dat[:,i]),linestyle)
-			fig.canvas.draw()
-	
+			ax1.set_title('$\\sigma / <\\Sigma>$, t='+str(t[i]*dt))
+			l1.set_ydata(real(dat[:,i]))
+			l2.set_ydata(imag(dat[:,i]))
+			l3.set_ydata(abs(dat[:,i]))
+			l4.set_ydata(angle(dat[:,i]))
+
+			ax1.set_ylim(l1range)
+			ax2.set_ylim(l2range)
+			ax3.set_ylim(l3range)
+			ax4.set_ylim(l4range)			
 			
+			fig.canvas.draw()
+			
+	
+	return dat,fld0		

@@ -82,6 +82,9 @@ void output_params(void) {
 		\tsigma0 = %lg\n \
 		\tsigma index = %lg\n \
 		\trot index =  %lg\n \
+		\t# Initial Eccentricity #\n \
+		\tinitial e = %lg\n \
+		\tinital a.o.p = %lg\n \
 		\t# Star Parameters	#\n \
 		\trsoft = %lg\n \
 		\tMs = %lg\n \
@@ -103,6 +106,8 @@ void output_params(void) {
 		Params->sig0,
 		Params->indsig,
 		Params->q,
+		Params->e0,
+		Params->w0,
 		Params->rs,
 		Params->ms,
 		Params->oms,
