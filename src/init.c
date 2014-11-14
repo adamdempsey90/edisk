@@ -11,7 +11,10 @@ void init_fld(Mode *fld) {
 	iend = NR+NG;
 	
 	
-
+#ifdef OPENMP
+        #pragma omp parallel private(i,r,lr) shared(fld)
+        #pragma omp for schedule(static)
+#endif
 	for(i=0;i<NTOT;i++) {
 		lr = (Params->rmin) + (.5 + i -NG ) * dr;
 		fld->r[i] = lr;

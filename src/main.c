@@ -18,6 +18,10 @@ int main(int argc, char *argv[]) {
 	bfld = (Bmode *)malloc(sizeof(Bmode));
 	Params = (Parameters *)malloc(sizeof(Parameters));
 	
+	MPI_Printf("Starting edisk code...\n");
+#ifdef OPENMP
+	MPI_Printf("Using OpenMP with %d threads\n",omp_get_max_threads());
+#endif
 	
 	if (argc!=1) strcpy(inputdir,argv[1]);
 	else strcpy(inputdir,"inputs/");
@@ -56,7 +60,7 @@ int main(int argc, char *argv[]) {
 		dt = t-dt;
 		avgdt += dt;
 
-		MPI_Printf ("\t step #%d, step size = %.5e, at t=%.5e \n", numstep,dt, t);
+//		MPI_Printf ("\t step #%d, step size = %.5e, at t=%.5e \n", numstep,dt, t);
    
 #if defined(KILLIN) || defined(KILLOUT)
 		wavekillbc(fld,dt);

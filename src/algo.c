@@ -43,12 +43,13 @@ void algogas(double t,Mode *fld) {
 	
 	dr = Params->dr;
 	dr2 = dr*dr;
-	
-	
+	m = fld->m;
+#ifdef OPENMP
+        #pragma omp parallel private(i,it,dru,drv,drs,d2ru,d2rv,u,v,sig,divv,r,r2,omk,c2,nu) shared(fld,dr,dr2,omf,m) 
+        #pragma omp for schedule(static)
+#endif	
 	for(i=istart;i<iend;i++) {
 		it = i-istart;
-		m = fld->m;
-		
 		r = exp(fld->r[i]);
 		r2 = r*r;
 

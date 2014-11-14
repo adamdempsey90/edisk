@@ -33,7 +33,10 @@ int new_h(double complex *yerr, double *h, double tol) {
 	double peps= DBL_MIN;
 	double eps;
 
-	
+#ifdef OPENMP
+	#pragma omp parallel private(i) shared(yerr) 
+        #pragma omp for schedule(static) reduction(max:peps)
+#endif	
 	for(i=0;i<rk_size;i++) {
 //		printf("%.6e\t%.6e+I%.6e\t%.6e\n",peps,creal(yerr[i]),cimag(yerr[i]),fabs(yerr[i]));
 		peps = fmax(peps,fabs(yerr[i]));

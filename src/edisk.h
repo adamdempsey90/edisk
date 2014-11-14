@@ -6,7 +6,8 @@
 #include <string.h>
 #include <complex.h>
 #include <sys/stat.h>
- 
+#include <omp.h>
+
 #define MPI_Printf	printf
 
 // Fourth Order Finite Difference Coefficients
@@ -16,8 +17,12 @@ static double d2c[5] = {-1./12,4./3,-5./2,4./3,-1./12};
 
 //#define OUTRHS
 //#define WAVEKILLBC
-//#define KILLIN
-//#define KILLOUT
+#define KILLIN
+#define KILLOUT
+//#define ZEROBC
+#define OPENMP
+
+
 
 typedef struct Mode {
 

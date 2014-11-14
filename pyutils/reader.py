@@ -2,6 +2,7 @@ class Field():
 	def __init__(self,t,outdir='',loadrhs=False,rhsnum=0,NG=2):	
 		disk = loadtxt(outdir+'disk.dat')
 		self.r = disk[:,0]
+		self.nlr = exp(self.r)
 		self.nr = len(self.r)
 		self.dr = diff(self.r)[0]
 		self.width = self.nr*self.dr
@@ -34,7 +35,7 @@ class Field():
 			ax1.set_ylabel('Re(u)')
 			ax2.plot(self.r,imag(self.u),linestyle,label=r'$Im(u)$')
 			ax2.set_ylabel('Im(u)')
-			ax2.set_xlabel('r')
+			ax2.set_xlabel('$\ln r$')
 		if q=='v':
 			fig,(ax1,ax2)=subplots(2,sharex=True)
 			ax1.set_title('v')
@@ -42,7 +43,7 @@ class Field():
 			ax1.set_ylabel('Re(v)')
 			ax2.plot(self.r,imag(self.v),linestyle,label='$Im(v))$')
 			ax2.set_ylabel('Im(v)')
-			ax2.set_xlabel('r')
+			ax2.set_xlabel('$\ln r$')
 		if q=='sig':
 			fig,(ax1,ax2)=subplots(2,sharex=True)
 			ax1.set_title('$\\sigma / <\\Sigma>$')
@@ -50,39 +51,39 @@ class Field():
 			ax1.set_ylabel('Re($\\sigma$)')
 			ax2.plot(self.r,imag(self.sig),linestyle,label='$Im(\\sigma))$')
 			ax2.set_ylabel('Im($\\sigma$)')
-			ax2.set_xlabel('r')
+			ax2.set_xlabel('$\ln r$')
 		if q=='vybar':
 			fig,ax = subplots()
 			ax.set_title('$<v_\\phi>$')
 			ax.plot(self.r,self.vyb,linestyle)
-			ax.set_xlabel('r')
+			ax.set_xlabel('$\ln r$')
 			
 		if q=='dbar':
 			fig,ax = subplots()
 			ax.set_title('$<\\Sigma>$')
 			ax.plot(self.r,self.dbar,linestyle)
-			ax.set_xlabel('r')
+			ax.set_xlabel('$\ln r$')
 			
 		if q=='omk':
 			fig,ax = subplots()
 			ax.set_title('$\\Omega_k$')
 			ax.plot(self.r,self.omk,linestyle)
-			ax.set_xlabel('r')
+			ax.set_xlabel('$\ln r$')
 		if q=='nu':
 			fig,ax = subplots()
 			ax.set_title('$\\nu$')
 			ax.plot(self.r,self.nu,linestyle)
-			ax.set_xlabel('r')
+			ax.set_xlabel('$\ln r$')
 		if q=='c2':
 			fig,ax = subplots()
 			ax.set_title('$c^2$')
 			ax.plot(self.r,self.c2,linestyle)
-			ax.set_xlabel('r')
+			ax.set_xlabel('$\ln r$')
 		if q=='hor':	
 			fig,ax = subplots()
 			ax.set_title('$h/r$')
 			ax.plot(self.r,self.hor,linestyle)
-			ax.set_xlabel('r')
+			ax.set_xlabel('$\ln r$')
 			
 		if q=='E':
 			fig,(ax1,ax2,ax3,ax4)=subplots(4,sharex=True)
@@ -95,7 +96,7 @@ class Field():
 			ax3.set_ylabel('e')
 			ax4.plot(self.r,angle(self.E),linestyle)
 			ax4.set_ylabel('$\\omega$')
-			ax4.set_xlabel('r')
+			ax4.set_xlabel('$\ln r$')
 		
 		if q=='dtu':
 			fig,(ax1,ax2)=subplots(2,sharex=True)
@@ -123,20 +124,29 @@ class Field():
 		
 		show()
 		
-	def draw_ellipse(self,Nph):
-		pgrid = linspace(-pi,pi,Nph)
-		rr,pp = meshgrid(fld.r,pgrid)
+	def draw_ellipse(self,num_ellipse,(xc,yc)=(0,0),Nph=200):
+		pgrid = linspace(0,2*pi,Nph)
 		# (Np , Nr)		
 		
-		vp = fld.v / fld.vyb 
+		vp = self.v / self.vyb 
 		
-		re = zeros((Nph,fld.nr))
+		x = zeros((Nph,self.nr))
+		y = zeros((Nph,self.nr))
 		for i in range(Nph):
 			# semi latus rectum
-			p = fld.r * (1 + real(vp*exp(-1j*pgrid[i])))**2
-			theta = pgrid[i] - angle(fld.E)
-			re[i,:] = p/(1+abs(fld.E)*cos(theta))
-		return re,pgrid
+			p = self.nlr * (1 + real(vp*exp(-1j*pgrid[i])))**2
+			theta = pgrid[i] - angle(self.E)
+			a = p/(1-abs(self.E)**2)
+			b = p/sqrt(1-abs(self.E)**2)
+			x[i,:] = xc +a*cos(theta) 
+			y[i,:] = yc + b*sin(theta)
+			
+			
+		figure();	
+		for i in range(self.nr)[::self.nr/num_ellipse]:
+			plot(x[:,i],y[:,i],'-k')
+			
+		return x,y
 		
 def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None):
 	if fld0==None:
@@ -164,7 +174,7 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None):
 		ax1.set_title('u')
 		ax1.set_ylabel('Re(u)')
 		ax2.set_ylabel('Im(u)')
-		ax2.set_xlabel('r')
+		ax2.set_xlabel('$\ln r$')
 		l1,= ax1.plot(fld0.r,real(fld0.u),linestyle)
 		l2,= ax2.plot(fld0.r,imag(fld0.u),linestyle)
 		l1range = (real(dat).min(),real(dat).max())
@@ -186,7 +196,7 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None):
 		ax1.set_title('v, t=0')
 		ax1.set_ylabel('Re(v)')
 		ax2.set_ylabel('Im(v)')
-		ax2.set_xlabel('r')
+		ax2.set_xlabel('$\ln r$')
 		l1,= ax1.plot(fld0.r,real(fld0.v),linestyle)
 		l2,= ax2.plot(fld0.r,imag(fld0.v),linestyle)
 		l1range = (real(dat).min(),real(dat).max())
@@ -206,7 +216,7 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None):
 		ax1.set_title('$\\sigma / <\\Sigma>$, t=0')
 		ax1.set_ylabel('Re($\\sigma$)')
 		ax2.set_ylabel('Im($\\sigma$)')
-		ax2.set_xlabel('r')
+		ax2.set_xlabel('$\ln r$')
 		l1,= ax1.plot(fld0.r,real(fld0.sig),linestyle)
 		l2,= ax2.plot(fld0.r,imag(fld0.sig),linestyle)
 		
@@ -231,7 +241,7 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None):
 		ax2.set_ylabel('$e_y$')
 		ax3.set_ylabel('e')
 		ax4.set_ylabel('$\\omega$')
-		ax4.set_xlabel('r')	
+		ax4.set_xlabel('$\ln r$')	
 		
 		l1,= ax1.plot(fld0.r,real(fld0.E),linestyle)
 		l2,= ax2.plot(fld0.r,imag(fld0.E),linestyle)
@@ -259,3 +269,20 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None):
 			
 	
 	return dat,fld0		
+	
+
+def draw_ellipse(lam,e,pomega,xc=0,yc=0,Nph=1000):
+	phi = linspace(0,2*pi,Nph)
+	
+	a = lam/(1-e*e)
+	b = lam/sqrt(1-e*e)
+	
+	x = xc + a*cos(phi)*cos(pomega)-b*sin(phi)*sin(pomega)
+	y = yc + a*cos(phi)*sin(pomega) + b*sin(phi)*cos(pomega)
+	
+	
+	figure(); 
+	plot(x,y)
+	return x,y
+	
+	

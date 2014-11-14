@@ -43,7 +43,7 @@ void wavekillbc(Mode *fld,double dt)
 //	const double x_in = 0;
 	const double x_out = (fld->r[iend-1])*0.8;
 	const double tauin = .1/(bfld->omk[istart]);
-	const double tauout = .1/(bfld->omk[iend-1]);
+	const double tauout = .05/(bfld->omk[iend-1]);
 	double complex ubc, vbc, sbc;
 	for(i=istart;i<iend;i++) {
 		x = fld->r[i];
