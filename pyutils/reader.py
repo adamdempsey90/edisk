@@ -15,6 +15,7 @@ class Field():
 		self.sig = dat[:,5] + 1j*dat[:,6]
 		self.vyb = dat[:,7]
 		self.omk = dat[:,8]
+		self.omk0 = pow(self.nlr,-1.5)
 		self.dbar = dat[:,9]
 		self.E = (2*self.v - 1j*self.u) / (2*self.vyb)
 		self.NG = NG
@@ -128,13 +129,14 @@ class Field():
 		pgrid = linspace(0,2*pi,Nph)
 		# (Np , Nr)		
 		
-		vp = self.v / self.vyb 
 		
 		x = zeros((Nph,self.nr))
 		y = zeros((Nph,self.nr))
 		for i in range(Nph):
 			# semi latus rectum
-			p = self.nlr * (1 + real(vp*exp(-1j*pgrid[i])))**2
+			l = self.nlr * (self.vyb  + real(self.v*exp(-1j*pgrid[i])))
+			l0 = self.nlr*self.nlr * self.omk0
+			p = self.nlr*(l/l0)*(l/l0)
 			theta = pgrid[i] - angle(self.E)
 			a = p/(1-abs(self.E)**2)
 			b = p/sqrt(1-abs(self.E)**2)
@@ -254,7 +256,7 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None):
 		l4range = (angle(dat).min(),angle(dat).max())
 		fig.canvas.draw()
 		for i in range(len(t)):
-			ax1.set_title('$\\sigma / <\\Sigma>$, t='+str(t[i]*dt))
+			ax1.set_title('Eccentricity, t='+str(t[i]*dt))
 			l1.set_ydata(real(dat[:,i]))
 			l2.set_ydata(imag(dat[:,i]))
 			l3.set_ydata(abs(dat[:,i]))

@@ -3,7 +3,7 @@
 Nr = 2048
 m = 1
 rmin = -2.5
-rmax = 2.5
+rmax = 2
 h0 = .05
 flare index = 0 
 alpha = 0.0

@@ -58,15 +58,16 @@ void user_ic(Mode *fld) {
 
 	int i;
 	double e0 = Params->e0;
-	double w0 = Params->w0;
+	double w = Params->w0;
 	double lr, r;
-	double complex E0 = e0 * cexp(I*w0);
+	double complex E0;
+	double sigma = .2
 	for(i=0;i<NTOT;i++) {
 		lr = (fld->r[i]);
 		r = exp(lr);
-		
-		fld->u[i] += I*(bfld->v[i])*E0*exp(-lr*lr/(.2*.2));
-		fld->v[i] += .5*(bfld->v[i])*E0*exp(-lr*lr/(.2*.2));	
+		E0 = e0*cexp(I*w); //* cexp(I*drw*lr);
+		fld->u[i] += I*(bfld->v[i])*E0*exp(-lr*lr/(sigma*sigma));
+		fld->v[i] += .5*(bfld->v[i])*E0*exp(-lr*lr/(sigma*sigma));	
 	}
 
 /* Set B.C */	
