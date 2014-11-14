@@ -61,7 +61,7 @@ void user_ic(Mode *fld) {
 	double w = Params->w0;
 	double lr, r;
 	double complex E0;
-	double sigma = .2
+	double sigma = .2;
 	for(i=0;i<NTOT;i++) {
 		lr = (fld->r[i]);
 		r = exp(lr);
