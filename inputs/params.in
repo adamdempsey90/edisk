@@ -1,6 +1,6 @@
 # Input Parameters #
 # Disk Parameters	#
-Nr = 2048
+Nr = 1024
 m = 1
 rmin = -2.5
 rmax = 2

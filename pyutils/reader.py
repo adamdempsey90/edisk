@@ -1,5 +1,5 @@
 class Field():
-	def __init__(self,t,outdir='',loadrhs=False,rhsnum=0,NG=2):	
+	def __init__(self,t,outdir='',loadrhs=False,rhsnum=0,NG=2,etol=0):	
 		disk = loadtxt(outdir+'disk.dat')
 		self.r = disk[:,0]
 		self.nlr = exp(self.r)
@@ -18,6 +18,18 @@ class Field():
 		self.omk0 = pow(self.nlr,-1.5)
 		self.dbar = dat[:,9]
 		self.E = (2*self.v - 1j*self.u) / (2*self.vyb)
+		
+		self.E = (abs(real(self.E))>etol)*real(self.E) + 1j*(abs(imag(self.E))>etol)*imag(self.E)
+# 		for i in range(self.nr):
+# 			if abs(real(self.E[i])) <= 1e-8:
+# 				if abs(imag(self.E[i])) <= 1e-8:
+# 					self.E[i] = 0
+# 				else:
+# 					self.E[i] = 1j*imag(self.E[i])
+# 			else:
+# 				if abs(imag(self.E[i])) <= 1e-8:
+# 					self.E[i] = real(self.E[i])
+		
 		self.NG = NG
 		if loadrhs:
 			rhs = loadtxt('rhs_'+str(rhsnum)+'.dat')
@@ -268,23 +280,54 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None):
 			ax4.set_ylim(l4range)			
 			
 			fig.canvas.draw()
-			
+	
 	
 	return dat,fld0		
 	
 
-def draw_ellipse(lam,e,pomega,xc=0,yc=0,Nph=1000):
-	phi = linspace(0,2*pi,Nph)
+def animate_ellipse(t,num_ellipse,(xc,yc)=(0,0),Nph=200):
 	
-	a = lam/(1-e*e)
-	b = lam/sqrt(1-e*e)
-	
-	x = xc + a*cos(phi)*cos(pomega)-b*sin(phi)*sin(pomega)
-	y = yc + a*cos(phi)*sin(pomega) + b*sin(phi)*cos(pomega)
+	if fld0==None:
+		fld0 = Field(0)
 	
 	
-	figure(); 
-	plot(x,y)
-	return x,y
+	if dat==None:
+		pgrid=linspace(0,2*pi,Nph)
+		ind = fld0.r==fld0.r[::fld.nr/num_ellipse]
+		l0 = fld0.nlr[ind]*fld0.nlr[ind] * fld0.omk0[ind]
+		x = zeros((Nph,len(l0),len(t)))
+		y = zeros((Nph,len(l0),len(t)))
+		
+		for i,j in enumerate(t):
+			print 'Loading time', j
+			fld=Field(j)
+			w = angle(fld.E[ind])
+			
+			l = fld.nlr[ind] * (fld.vyb[ind]  + real(fld.v[ind]*exp(-1j*pgrid[i])))
+			p = fld.nlr[ind]*(l/l0)*(l/l0)
+			theta = pgrid[i] - angle(fld.E[ind])
+			a = p/(1-abs(fld.E)**2)
+			b = p/sqrt(1-abs(self.E)**2)
+			x[i,:] = xc +a*cos(theta) 
+			y[i,:] = yc + b*sin(theta)			
 	
+	if q=='u':
+		fig = figure()
+		ax1=fig.add_subplot(211)
+		ax2 = fig.add_subplot(212,sharex=ax1)
+		ax1.set_title('u')
+		ax1.set_ylabel('Re(u)')
+		ax2.set_ylabel('Im(u)')
+		ax2.set_xlabel('$\ln r$')
+		l1,= ax1.plot(fld0.r,real(fld0.u),linestyle)
+		l2,= ax2.plot(fld0.r,imag(fld0.u),linestyle)
+		l1range = (real(dat).min(),real(dat).max())
+		l2range = (imag(dat).min(),imag(dat).max())
+		for i in range(dat.shape[1]):
+			ax1.set_title('v, t='+str(t[i]*dt))
+			l1.set_ydata(real(dat[:,i]))
+			l2.set_ydata(imag(dat[:,i]))
+			ax1.set_ylim(l1range)
+			ax2.set_ylim(l2range)
+			fig.canvas.draw()
 	
