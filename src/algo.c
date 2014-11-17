@@ -134,7 +134,9 @@ void algogas(double t,Mode *fld) {
 // 					-(2.*nu/(3.*r))*(divv*nusinds + dru - u/r + r*d2ru - I*m*drv+I*m*v/r);
 // 					
 /* Stellar Potential indirect term */
-
+#ifdef COMPANION
+		fld->dtu[it] += cstar->gr[it];
+#endif
 
 /* v eom */
 
@@ -154,7 +156,9 @@ void algogas(double t,Mode *fld) {
 // 					
 					
 /* Stellar Potential indirect term */
-
+#ifdef COMPANION
+		fld->dtu[it] += cstar->gp[it];
+#endif
 
 /* sig eom */
 

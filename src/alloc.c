@@ -52,6 +52,15 @@ void alloc_fld(Mode *fld) {
 
 	Params->c2 = (double *)malloc(sizeof(double)*NTOT);
 	if (Params->c2 == NULL) malloc_err("c2");
+	
+	
+#ifdef COMPANION
+	
+	cstar->gr = (double complex *)malloc(sizeof(double complex)*NR);
+	if (cstar->gr == NULL) malloc_err("gr");
+	cstar->gp = (double complex *)malloc(sizeof(double complex)*NR);
+	if (cstar->gp == NULL) malloc_err("gp");
+#endif
 	return;
 }
 
@@ -80,7 +89,13 @@ void free_fld(Mode *fld) {
 	free(Params->nu);
 	free(Params->c2);
 	free(Params);
-	
+
+#ifdef COMPANION
+	free(cstar->gp);
+	free(cstar->gr);
+	free(cstar);
+
+#endif
 	return;
 }
 

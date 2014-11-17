@@ -18,11 +18,11 @@ static double d2c[5] = {-1./12,4./3,-5./2,4./3,-1./12};
 //#define OUTRHS
 //#define WAVEKILLBC
 #define KILLIN
-#define KILLOUT
+//#define KILLOUT
 //#define ZEROBC
 #define OPENMP
 
-
+#define COMPANION
 
 typedef struct Mode {
 
@@ -68,6 +68,18 @@ typedef struct Parameters {
 
 } Parameters;
 
+
+typedef struct Star {
+	double ms;
+	double r,phi;
+	double complex *gr, *gp;
+
+} Star;
+
+
+
+
+
 typedef void (*rhsfunc)(double , double complex *, double complex *, Mode *);
 
 
@@ -90,6 +102,7 @@ void output_disk(double *r);
 void output_rhs(Mode *fld);
 void set_bc(Mode *fld);
 void wavekillbc(Mode *fld,double dt);
+void init_star(Mode *fld);
 
 
 int NR, istart, iend, NTOT;
@@ -99,3 +112,4 @@ double complex	u_in_bc,u_out_bc,v_in_bc,v_out_bc,
 				
 Bmode *bfld;
 Parameters *Params;
+Star *cstar;

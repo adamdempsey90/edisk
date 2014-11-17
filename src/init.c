@@ -46,7 +46,14 @@ void init_fld(Mode *fld) {
 		fld->sig[i] = 0;
 	}
 	Params->indnu = 2 *(Params->indfl) + Params->q + 2;
+
+
 	user_ic(fld);
+	
+#ifdef COMPANION
+	init_star(fld);
+#endif	
+	
 	
 	return;
 }
@@ -65,9 +72,14 @@ void user_ic(Mode *fld) {
 	for(i=0;i<NTOT;i++) {
 		lr = (fld->r[i]);
 		r = exp(lr);
-		E0 = e0*cexp(I*w); //* cexp(I*drw*lr);
-		fld->u[i] += I*(bfld->v[i])*E0*exp(-(lr-.5)*(lr-.5)/(sigma*sigma));
-		fld->v[i] += .5*(bfld->v[i])*E0*exp(-(lr-.5)*(lr-.5)/(sigma*sigma));	
+//		E0 = e0*cexp(I*w); //* cexp(I*drw*lr);
+		
+		E0 = cos( .5*M_PI*(exp(fld->r[iend-1]) - r)/(exp(fld->r[iend-1])-exp(fld->r[istart])));
+		
+
+
+		fld->u[i] += I*(bfld->v[i])*E0; //*exp(-(lr-.5)*(lr-.5)/(sigma*sigma));
+		fld->v[i] += .5*(bfld->v[i])*E0; //*exp(-(lr-.5)*(lr-.5)/(sigma*sigma));	
 	}
 
 /* Set B.C */	

@@ -17,6 +17,12 @@ int main(int argc, char *argv[]) {
 
 	bfld = (Bmode *)malloc(sizeof(Bmode));
 	Params = (Parameters *)malloc(sizeof(Parameters));
+
+#ifdef COMPANION
+	cstar = (Star *)malloc(sizeof(Star));
+#endif
+
+	
 	
 	MPI_Printf("Starting edisk code...\n");
 #ifdef OPENMP
@@ -30,6 +36,7 @@ int main(int argc, char *argv[]) {
 	
 	alloc_fld(fld);
 	init_fld(fld);
+
 	
 	init_output(Params->outdir);
 	
