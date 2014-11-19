@@ -54,26 +54,62 @@ void algogas(double t,Mode *fld) {
 		r2 = r*r;
 
 
-		drs = d1c[0]*(fld->sig[i-2]) + d1c[1]*(fld->sig[i-1]) 
-				+ d1c[2]*(fld->sig[i+1]) + d1c[3]*(fld->sig[i+2]);
+// 		drs = d1c[0]*(fld->sig[i-2]) + d1c[1]*(fld->sig[i-1]) 
+// 				+ d1c[2]*(fld->sig[i+1]) + d1c[3]*(fld->sig[i+2]);
+// 		drs /= dr;
+// 
+// 		dru = d1c[0]*(fld->u[i-2]) + d1c[1]*(fld->u[i-1]) 
+// 				+ d1c[2]*(fld->u[i+1]) + d1c[3]*(fld->u[i+2]);
+// 		dru /= dr;
+// 
+// 		drv = d1c[0]*(fld->v[i-2]) + d1c[1]*(fld->v[i-1]) 
+// 				+ d1c[2]*(fld->v[i+1]) + d1c[3]*(fld->v[i+2]);
+// 		drv /= dr;
+// 
+// 
+// 		d2rv = d2c[0]*(fld->v[i-2]) + d2c[1]*(fld->v[i-1]) 
+// 				+ d2c[2]*(fld->v[i]) + d2c[3]*(fld->v[i+1]) + d2c[4]*(fld->v[i+2]);
+// 		d2rv /= dr2;
+// 
+// 		d2ru = d2c[0]*(fld->v[i-2]) + d2c[1]*(fld->v[i-1]) 
+// 				+ d2c[2]*(fld->v[i]) + d2c[3]*(fld->v[i+1]) + d2c[4]*(fld->v[i+2]);
+// 		d2ru /= dr2;
+
+// 		if (i!=iend-1) {
+// 			drs = .5*(fld->sig[i+1] - fld->sig[i-1]);
+// 			dru =  .5*(fld->u[i+1] - fld->u[i-1]);
+// 			drv =  .5*(fld->v[i+1] - fld->v[i-1]);
+// 			d2ru = (fld->u[i+1] + fld->u[i-1] - 2*(fld->u[i]));
+// 			d2rv = (fld->v[i+1] + fld->v[i-1] - 2*(fld->v[i]));
+// 		}
+// 		else {
+// 			
+// //			fld->u[i] = I*(bfld->u[i]);
+// //			fld->v[i] = .5*(bfld->v[i]);
+// 			dru = (1+bfld->dlomk[i])*(fld->u[i]);
+// 			drv = (1+bfld->dlomk[i])*(fld->v[i]);
+// 			
+// 			d2ru = 0;
+// 			d2rv = 0;
+// 			fld->sig[i] = 0;
+// 			drs = 0;	
+// 			
+// 		
+// 			
+// 		}
+		
+		
+		drs = .5*(fld->sig[i+1] - fld->sig[i-1]);
+		dru =  .5*(fld->u[i+1] - fld->u[i-1]);
+		drv =  .5*(fld->v[i+1] - fld->v[i-1]);
+		d2ru = (fld->u[i+1] + fld->u[i-1] - 2*(fld->u[i]));
+		d2rv = (fld->v[i+1] + fld->v[i-1] - 2*(fld->v[i]));
 		drs /= dr;
-
-		dru = d1c[0]*(fld->u[i-2]) + d1c[1]*(fld->u[i-1]) 
-				+ d1c[2]*(fld->u[i+1]) + d1c[3]*(fld->u[i+2]);
 		dru /= dr;
-
-		drv = d1c[0]*(fld->v[i-2]) + d1c[1]*(fld->v[i-1]) 
-				+ d1c[2]*(fld->v[i+1]) + d1c[3]*(fld->v[i+2]);
 		drv /= dr;
-
-
-		d2rv = d2c[0]*(fld->v[i-2]) + d2c[1]*(fld->v[i-1]) 
-				+ d2c[2]*(fld->v[i]) + d2c[3]*(fld->v[i+1]) + d2c[4]*(fld->v[i+2]);
+		d2ru /= dr2;
 		d2rv /= dr2;
 
-		d2ru = d2c[0]*(fld->v[i-2]) + d2c[1]*(fld->v[i-1]) 
-				+ d2c[2]*(fld->v[i]) + d2c[3]*(fld->v[i+1]) + d2c[4]*(fld->v[i+2]);
-		d2ru /= dr2;
 // 		drs  = (.5/dr)*(fld->sig[i+1] - fld->sig[i-1]);
 // 		dru  = (.5/dr)*(fld->u[i+1] - fld->u[i-1]);
 // 		drv  = (.5/dr)*(fld->v[i+1] - fld->v[i-1]);

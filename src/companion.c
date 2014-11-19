@@ -7,6 +7,7 @@ double bfunc(double h, double a, double m, double r);
 double dbfunc(double h, double a, double m, double r);
 double laplace(double a, double m, double r);
 double dlaplace(double a, double m, double r);
+void output_companion(double *r);
 void init_star(Mode *fld) {
 	int i;
 	double r;
@@ -19,7 +20,7 @@ void init_star(Mode *fld) {
 	
 	grfac = -(cstar->ms)/(2*(cstar->r)*(cstar->r));
 	gpfac = (I*(fld->m)*(cstar->ms)/(2*(cstar->r)));
-	
+
 	for(i=0;i<NR;i++) {
 		r = exp((fld->r[i+istart]));
 		cstar->gr[i] = dlaplace(.5,fld->m,r/(cstar->r));
@@ -29,6 +30,7 @@ void init_star(Mode *fld) {
 		cstar->gp[i] *= gpfac/r;
 	}
 
+	output_companion(fld->r);
 	return;
 }
 
@@ -98,3 +100,23 @@ double dbfunc(double h, double a, double m, double r) {
 	double rad = pow(1 + r*r - 2*r*cos(h),a+1);
 	return 2*a*cos(m*h)*(cos(h)-r)/rad;
 } 
+
+
+void output_companion(double *r) {
+	int i;
+	char fname[100];
+	strcpy(fname,Params->outdir);
+	strcat(fname,"companion.dat");
+	FILE *f = fopen(fname,"w");
+	for(i=0;i<NR;i++) {
+		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\n",
+		r[i+istart],
+		creal(cstar->gr[i]),
+		cimag(cstar->gr[i]),
+		creal(cstar->gp[i]),
+		cimag(cstar->gp[i]));
+	}
+	fclose(f);
+	return;
+
+}

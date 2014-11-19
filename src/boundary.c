@@ -14,18 +14,18 @@ void set_bc(Mode *fld) {
 		fld->v[i+iend] = fld->v[iend-i-1];
 		fld->sig[i+iend] = fld->sig[iend-i-1];
 #else
-// 		fld->u[i] = fld->u[istart];
-// 		fld->v[i] = fld->v[istart];
-// 		fld->sig[i] = fld->sig[istart];
-// 		fld->u[i+iend] = fld->u[iend-1];
-// 		fld->v[i+iend] = fld->v[iend-1];
-// 		fld->sig[i+iend] = fld->sig[iend-1];	
-		fld->u[i] = u_in_bc;
-		fld->v[i] = v_in_bc;
-		fld->sig[i] = s_in_bc;
-		fld->u[i+iend] = u_out_bc;
-		fld->v[i+iend] = v_out_bc;
-		fld->sig[i+iend] = s_out_bc;	
+		fld->u[i] = fld->u[istart];
+		fld->v[i] = fld->v[istart];
+		fld->sig[i] = fld->sig[istart];
+		fld->u[i+iend] = fld->u[iend-1];
+		fld->v[i+iend] = fld->v[iend-1];
+		fld->sig[i+iend] = fld->sig[iend-1];	
+// 		fld->u[i] = u_in_bc;
+// 		fld->v[i] = v_in_bc;
+// 		fld->sig[i] = s_in_bc;
+// 		fld->u[i+iend] = u_out_bc;
+// 		fld->v[i+iend] = v_out_bc;
+// 		fld->sig[i+iend] = s_out_bc;	
 
 #endif
 	}
@@ -34,7 +34,7 @@ void set_bc(Mode *fld) {
 
 void wavekillbc(Mode *fld,double dt)
 {
-	int i;
+	int i,iflag,oflag;
 	double R,tau,x,dtdtau;
 	double x_in;
 	if (fld->r[istart] < 0 ) x_in = (fld->r[istart])*.8;
@@ -43,9 +43,15 @@ void wavekillbc(Mode *fld,double dt)
 //	const double x_in = 0;
 	const double x_out = (fld->r[iend-1])*0.8;
 	const double tauin = .1/(bfld->omk[istart]);
-	const double tauout = .05/(bfld->omk[iend-1]);
+	const double tauout = tauin; //.05/(bfld->omk[iend-1]);
 	double complex ubc, vbc, sbc;
+	
+#ifdef OPENMP
+        #pragma omp parallel private(i,iflag,oflag,x,R,ubc,vbc,sbc,tau,dtdtau) shared(fld)
+        #pragma omp for schedule(static)
+#endif	
 	for(i=istart;i<iend;i++) {
+		iflag=0; oflag=0;
 		x = fld->r[i];
 		R=0;
 #ifdef KILLOUT
@@ -56,6 +62,7 @@ void wavekillbc(Mode *fld,double dt)
 			vbc = v_out_bc;
 			sbc = s_out_bc;
 			tau = tauout;
+			oflag=1;
 		}
 #endif
 #ifdef KILLIN
@@ -65,6 +72,7 @@ void wavekillbc(Mode *fld,double dt)
 			vbc = v_in_bc;
 			sbc = s_in_bc;
 			tau = tauin;
+			iflag=1;
 		}
 #endif
 		R *= R;
@@ -73,10 +81,15 @@ void wavekillbc(Mode *fld,double dt)
 		if (R>0.0) {
 			tau /= R; 
 			dtdtau = dt/tau;
-			fld->u[i] = (fld->u[i] + dtdtau * ubc)/(1+dtdtau );
-			fld->v[i] = (fld->v[i]+ dtdtau * vbc)/(1+dtdtau );
-			fld->sig[i] = (fld->sig[i] + dtdtau * sbc)/(1+dtdtau);				
-
+			
+			if (iflag==1) {
+				fld->u[i] = (fld->u[i] + dtdtau * ubc)/(1+dtdtau );
+				fld->v[i] = (fld->v[i]+ dtdtau * vbc)/(1+dtdtau );
+				fld->sig[i] = (fld->sig[i] + dtdtau * sbc)/(1+dtdtau);
+			}
+			if (oflag==1) {
+				fld->sig[i] /= (1 + dtdtau);
+			}
 		}
 	}
 	return;

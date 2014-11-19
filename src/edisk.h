@@ -11,7 +11,7 @@
 #define MPI_Printf	printf
 
 // Fourth Order Finite Difference Coefficients
-#define NG 2
+#define NG 1
 static double d1c[4] = {1./12,-2./3,2./3,-1./12};
 static double d2c[5] = {-1./12,4./3,-5./2,4./3,-1./12};
 

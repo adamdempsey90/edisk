@@ -83,6 +83,9 @@ void read_inputs(char *inputdir) {
 	strcpy(Params->outdir,outdir);
 	NTOT = NR+2*NG;
 	
+#ifndef COMPANION
+	Params->oms = 0;
+#endif   
    
   	mkdir(outdir,0777);
 	

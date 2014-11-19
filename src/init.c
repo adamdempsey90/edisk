@@ -10,6 +10,7 @@ void init_fld(Mode *fld) {
 	istart = NG;
 	iend = NR+NG;
 	
+	fld->m = Params->m;
 	
 #ifdef OPENMP
         #pragma omp parallel private(i,r,lr) shared(fld)
@@ -69,34 +70,44 @@ void user_ic(Mode *fld) {
 	double lr, r;
 	double complex E0;
 	double sigma = .2;
-	for(i=0;i<NTOT;i++) {
+	double r0 = 0;
+	for(i=istart;i<iend;i++) {
 		lr = (fld->r[i]);
 		r = exp(lr);
-//		E0 = e0*cexp(I*w); //* cexp(I*drw*lr);
+		E0 = e0*cexp(I*w); //* cexp(I*drw*lr);
 		
 		E0 = cos( .5*M_PI*(exp(fld->r[iend-1]) - r)/(exp(fld->r[iend-1])-exp(fld->r[istart])));
 		
+//		E0 *= exp(-(lr-r0)*(lr-r0)/(sigma*sigma));
 
-
-		fld->u[i] += I*(bfld->v[i])*E0; //*exp(-(lr-.5)*(lr-.5)/(sigma*sigma));
-		fld->v[i] += .5*(bfld->v[i])*E0; //*exp(-(lr-.5)*(lr-.5)/(sigma*sigma));	
+		fld->u[i] += I*(bfld->v[i])*E0;
+		fld->v[i] += .5*(bfld->v[i])*E0;	
 	}
 
 /* Set B.C */	
 /* Grab the inner and outer b.c's from the initialized profile. */
 
-	u_in_bc = fld->u[istart];
-//	u_in_bc = 0;
+//	u_in_bc = fld->u[istart];
+	u_in_bc = 0;
 	u_out_bc = fld->u[iend-1];
 	
-	v_in_bc = fld->v[istart];
-//	v_in_bc = 0;
+//	v_in_bc = fld->v[istart];
+	v_in_bc = 0;
 	v_out_bc = fld->v[iend-1];
 	
-	s_in_bc = fld->sig[istart];
-//	s_in_bc = 0;
-	s_out_bc = fld->sig[iend-1];
+//	s_in_bc = fld->sig[istart];
+	s_in_bc = 0;
+	s_out_bc = 0;
+//	s_out_bc = fld->sig[iend-1];
 	
+	for(i=0;i<istart;i++) {
+		fld->u[i] = u_in_bc;
+		fld->v[i] = v_in_bc;
+		fld->sig[i] = s_in_bc;
+		fld->u[i+iend] = u_out_bc;
+		fld->v[i+iend] = v_out_bc;
+		fld->sig[i+iend] = s_out_bc;
+	}
 	
 	return;
 }

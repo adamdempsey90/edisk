@@ -1,5 +1,5 @@
 class Field():
-	def __init__(self,t,outdir='',loadrhs=False,rhsnum=0,NG=2,etol=0):	
+	def __init__(self,t,outdir='',loadrhs=False,rhsnum=0,NG=2,etol=1e-8):	
 		disk = loadtxt(outdir+'disk.dat')
 		self.r = disk[:,0]
 		self.nlr = exp(self.r)
@@ -19,7 +19,10 @@ class Field():
 		self.dbar = dat[:,9]
 		self.E = (2*self.v - 1j*self.u) / (2*self.vyb)
 		
-		self.E = (abs(real(self.E))>etol)*real(self.E) + 1j*(abs(imag(self.E))>etol)*imag(self.E)
+
+		self.E = (abs(real(self.E))>etol).astype('int')*real(self.E) \
+				+1j*(abs(imag(self.E))>etol).astype('int') * imag(self.E)
+#		self.E *= (((abs(real(self.E))<=etol).astype('int') * (abs(imag(self.E))<=etol).astype('int')+1)%2)
 # 		for i in range(self.nr):
 # 			if abs(real(self.E[i])) <= 1e-8:
 # 				if abs(imag(self.E[i])) <= 1e-8:
@@ -40,101 +43,107 @@ class Field():
 			self.dtu = 0
 			self.dtv = 0
 			self.dts = 0
-	def plot(self,q,linestyle='-'):
+	def plot(self,q,linestyle='-',logr=True):
+		if logr:
+			r = self.r
+			xname = '$\ln r$'
+		else:
+			r = exp(self.r)
+			xname = '$r$'
 		if q=='u':
 			fig,(ax1,ax2)=subplots(2,sharex=True)
 			ax1.set_title('u')
-			ax1.plot(self.r,real(self.u),linestyle,label=r'$Re(u)$')
+			ax1.plot(r,real(self.u),linestyle,label=r'$Re(u)$')
 			ax1.set_ylabel('Re(u)')
-			ax2.plot(self.r,imag(self.u),linestyle,label=r'$Im(u)$')
+			ax2.plot(r,imag(self.u),linestyle,label=r'$Im(u)$')
 			ax2.set_ylabel('Im(u)')
-			ax2.set_xlabel('$\ln r$')
+			ax2.set_xlabel(xname)
 		if q=='v':
 			fig,(ax1,ax2)=subplots(2,sharex=True)
 			ax1.set_title('v')
-			ax1.plot(self.r,real(self.v),linestyle,label='$Re(v)$')
+			ax1.plot(r,real(self.v),linestyle,label='$Re(v)$')
 			ax1.set_ylabel('Re(v)')
-			ax2.plot(self.r,imag(self.v),linestyle,label='$Im(v))$')
+			ax2.plot(r,imag(self.v),linestyle,label='$Im(v))$')
 			ax2.set_ylabel('Im(v)')
-			ax2.set_xlabel('$\ln r$')
+			ax2.set_xlabel(xname)
 		if q=='sig':
 			fig,(ax1,ax2)=subplots(2,sharex=True)
 			ax1.set_title('$\\sigma / <\\Sigma>$')
-			ax1.plot(self.r,real(self.sig),linestyle,label='$Re(\\sigma))$')
+			ax1.plot(r,real(self.sig),linestyle,label='$Re(\\sigma))$')
 			ax1.set_ylabel('Re($\\sigma$)')
-			ax2.plot(self.r,imag(self.sig),linestyle,label='$Im(\\sigma))$')
+			ax2.plot(r,imag(self.sig),linestyle,label='$Im(\\sigma))$')
 			ax2.set_ylabel('Im($\\sigma$)')
-			ax2.set_xlabel('$\ln r$')
+			ax2.set_xlabel(xname)
 		if q=='vybar':
 			fig,ax = subplots()
 			ax.set_title('$<v_\\phi>$')
-			ax.plot(self.r,self.vyb,linestyle)
-			ax.set_xlabel('$\ln r$')
+			ax.plot(r,self.vyb,linestyle)
+			ax.set_xlabel(xname)
 			
 		if q=='dbar':
 			fig,ax = subplots()
 			ax.set_title('$<\\Sigma>$')
-			ax.plot(self.r,self.dbar,linestyle)
-			ax.set_xlabel('$\ln r$')
+			ax.plot(r,self.dbar,linestyle)
+			ax.set_xlabel(xname)
 			
 		if q=='omk':
 			fig,ax = subplots()
 			ax.set_title('$\\Omega_k$')
-			ax.plot(self.r,self.omk,linestyle)
-			ax.set_xlabel('$\ln r$')
+			ax.plot(r,self.omk,linestyle)
+			ax.set_xlabel(xname)
 		if q=='nu':
 			fig,ax = subplots()
 			ax.set_title('$\\nu$')
-			ax.plot(self.r,self.nu,linestyle)
-			ax.set_xlabel('$\ln r$')
+			ax.plot(r,self.nu,linestyle)
+			ax.set_xlabel(xname)
 		if q=='c2':
 			fig,ax = subplots()
 			ax.set_title('$c^2$')
-			ax.plot(self.r,self.c2,linestyle)
-			ax.set_xlabel('$\ln r$')
+			ax.plot(r,self.c2,linestyle)
+			ax.set_xlabel(xname)
 		if q=='hor':	
 			fig,ax = subplots()
 			ax.set_title('$h/r$')
-			ax.plot(self.r,self.hor,linestyle)
-			ax.set_xlabel('$\ln r$')
+			ax.plot(r,self.hor,linestyle)
+			ax.set_xlabel(xname)
 			
 		if q=='E':
 			fig,(ax1,ax2,ax3,ax4)=subplots(4,sharex=True)
 			ax1.set_title('Eccentricity')
-			ax1.plot(self.r,real(self.E),linestyle)
+			ax1.plot(r,real(self.E),linestyle)
 			ax1.set_ylabel('$e_x$')
-			ax2.plot(self.r,imag(self.E),linestyle)
+			ax2.plot(r,imag(self.E),linestyle)
 			ax2.set_ylabel('$e_y$')
-			ax3.plot(self.r,abs(self.E),linestyle)
+			ax3.plot(r,abs(self.E),linestyle)
 			ax3.set_ylabel('e')
-			ax4.plot(self.r,angle(self.E),linestyle)
+			ax4.plot(r,angle(self.E),linestyle)
 			ax4.set_ylabel('$\\omega$')
-			ax4.set_xlabel('$\ln r$')
+			ax4.set_xlabel(xname)
 		
 		if q=='dtu':
 			fig,(ax1,ax2)=subplots(2,sharex=True)
 			ax1.set_title('dtu')
-			ax1.plot(self.r[self.NG:-self.NG],real(self.dtu),linestyle,label=r'$Re(dtu)$')
+			ax1.plot(r[self.NG:-self.NG],real(self.dtu),linestyle,label=r'$Re(dtu)$')
 			ax1.set_ylabel('Re(dtu)')
-			ax2.plot(self.r[self.NG:-self.NG],imag(self.dtu),linestyle,label=r'$Im(dtu)$')
+			ax2.plot(r[self.NG:-self.NG],imag(self.dtu),linestyle,label=r'$Im(dtu)$')
 			ax2.set_ylabel('Im(dtu)')
-			ax2.set_xlabel('r')
+			ax2.set_xlabel(xname)
 		if q=='dtv':
 			fig,(ax1,ax2)=subplots(2,sharex=True)
 			ax1.set_title('dtv')
-			ax1.plot(self.r[self.NG:-self.NG],real(self.dtv),linestyle,label='$Re(dtv)$')
+			ax1.plot(r[self.NG:-self.NG],real(self.dtv),linestyle,label='$Re(dtv)$')
 			ax1.set_ylabel('Re(dtv)')
-			ax2.plot(self.r[self.NG:-self.NG],imag(self.dtv),linestyle,label='$Im(dtv))$')
+			ax2.plot(r[self.NG:-self.NG],imag(self.dtv),linestyle,label='$Im(dtv))$')
 			ax2.set_ylabel('Im(dtv)')
-			ax2.set_xlabel('r')
+			ax2.set_xlabel(xname)
 		if q=='dts':
 			fig,(ax1,ax2)=subplots(2,sharex=True)
 			ax1.set_title('dts')
-			ax1.plot(self.r[self.NG:-self.NG],real(self.dts),linestyle,label='$Re(dts)$')
+			ax1.plot(r[self.NG:-self.NG],real(self.dts),linestyle,label='$Re(dts)$')
 			ax1.set_ylabel('Re(dts)')
-			ax2.plot(self.r[self.NG:-self.NG],imag(self.dts),linestyle,label='$Im(dts)$')
+			ax2.plot(r[self.NG:-self.NG],imag(self.dts),linestyle,label='$Im(dts)$')
 			ax2.set_ylabel('Im(dts)')	
-		
+			ax2.set_xlabel(xname)
 		show()
 		
 	def draw_ellipse(self,num_ellipse,(xc,yc)=(0,0),Nph=200):
