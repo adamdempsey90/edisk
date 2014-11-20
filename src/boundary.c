@@ -39,11 +39,10 @@ void wavekillbc(Mode *fld,double dt)
 	double x_in;
 	if (fld->r[istart] < 0 ) x_in = (fld->r[istart])*.8;
 	else x_in = (fld->r[istart])*1.2;
-	
 //	const double x_in = 0;
 	const double x_out = (fld->r[iend-1])*0.8;
 	const double tauin = .1/(bfld->omk[istart]);
-	const double tauout = tauin; //.05/(bfld->omk[iend-1]);
+	const double tauout = .05/(bfld->omk[iend-1]);
 	double complex ubc, vbc, sbc;
 	
 #ifdef OPENMP
@@ -51,10 +50,10 @@ void wavekillbc(Mode *fld,double dt)
         #pragma omp for schedule(static)
 #endif	
 	for(i=istart;i<iend;i++) {
-		iflag=0; oflag=0;
 		x = fld->r[i];
 		R=0;
-#ifdef KILLOUT
+	
+//#ifdef KILLOUT
 		if (x > x_out) {
 /* Outer Boundary */
 			R = (x-x_out)/(fld->r[iend-1] - x_out);
@@ -62,19 +61,17 @@ void wavekillbc(Mode *fld,double dt)
 			vbc = v_out_bc;
 			sbc = s_out_bc;
 			tau = tauout;
-			oflag=1;
 		}
-#endif
-#ifdef KILLIN
+//#endif
+//#ifdef KILLIN
 		if (x < x_in)  {
 			R = (x_in - x)/(x_in - fld->r[istart]);
 			ubc = u_in_bc;
 			vbc = v_in_bc;
 			sbc = s_in_bc;
 			tau = tauin;
-			iflag=1;
 		}
-#endif
+//#endif
 		R *= R;
 		
 
@@ -82,14 +79,11 @@ void wavekillbc(Mode *fld,double dt)
 			tau /= R; 
 			dtdtau = dt/tau;
 			
-			if (iflag==1) {
-				fld->u[i] = (fld->u[i] + dtdtau * ubc)/(1+dtdtau );
-				fld->v[i] = (fld->v[i]+ dtdtau * vbc)/(1+dtdtau );
-				fld->sig[i] = (fld->sig[i] + dtdtau * sbc)/(1+dtdtau);
-			}
-			if (oflag==1) {
-				fld->sig[i] /= (1 + dtdtau);
-			}
+//			fld->u[i] = (fld->u[i] + dtdtau * ubc)/(1+dtdtau );
+//			fld->v[i] = (fld->v[i]+ dtdtau * vbc)/(1+dtdtau );
+			fld->sig[i] = (fld->sig[i] + dtdtau * sbc)/(1+dtdtau);
+			
+			
 		}
 	}
 	return;

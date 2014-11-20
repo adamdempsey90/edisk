@@ -16,13 +16,14 @@ static double d1c[4] = {1./12,-2./3,2./3,-1./12};
 static double d2c[5] = {-1./12,4./3,-5./2,4./3,-1./12};
 
 //#define OUTRHS
-//#define WAVEKILLBC
-#define KILLIN
+#define WAVEKILLBC
+//#define OUTRHS
+//#define KILLIN
 //#define KILLOUT
 //#define ZEROBC
 #define OPENMP
 
-#define COMPANION
+//#define COMPANION
 
 typedef struct Mode {
 

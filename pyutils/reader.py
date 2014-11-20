@@ -1,8 +1,8 @@
 class Field():
-	def __init__(self,t,outdir='',loadrhs=False,rhsnum=0,NG=2,etol=1e-8):	
+	def __init__(self,t,outdir='',loadrhs=False,rhsnum=0,NG=1,etol=1e-8):	
 		disk = loadtxt(outdir+'disk.dat')
 		self.r = disk[:,0]
-		self.nlr = exp(self.r)
+		self.nlr = 10**self.r
 		self.nr = len(self.r)
 		self.dr = diff(self.r)[0]
 		self.width = self.nr*self.dr
@@ -20,8 +20,8 @@ class Field():
 		self.E = (2*self.v - 1j*self.u) / (2*self.vyb)
 		
 
-		self.E = (abs(real(self.E))>etol).astype('int')*real(self.E) \
-				+1j*(abs(imag(self.E))>etol).astype('int') * imag(self.E)
+#		self.E = (abs(real(self.E))>etol).astype('int')*real(self.E) \
+#				+1j*(abs(imag(self.E))>etol).astype('int') * imag(self.E)
 #		self.E *= (((abs(real(self.E))<=etol).astype('int') * (abs(imag(self.E))<=etol).astype('int')+1)%2)
 # 		for i in range(self.nr):
 # 			if abs(real(self.E[i])) <= 1e-8:
@@ -48,7 +48,7 @@ class Field():
 			r = self.r
 			xname = '$\ln r$'
 		else:
-			r = exp(self.r)
+			r = 10**self.r
 			xname = '$r$'
 		if q=='u':
 			fig,(ax1,ax2)=subplots(2,sharex=True)
@@ -171,10 +171,10 @@ class Field():
 			
 		return x,y
 		
-def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None):
+def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None,logr=True):
 	if fld0==None:
 		fld0 = Field(0)
-	
+		
 	if dat==None:
 		dat = zeros((fld0.nr,len(t)),dtype='complex')
 		for i,j in enumerate(t):
@@ -183,13 +183,20 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None):
 			if q=='u':
 				dat[:,i] = fld.u
 			if q=='v':
-				dat[:,i] = fld.u
+				dat[:,i] = fld.v
 			if q=='sig':
-				dat[:,i] = fld.u
+				dat[:,i] = fld.sig
 			if q=='E':
 				dat[:,i] = fld.E
 		
 	
+	if logr:
+		r = fld0.r
+		xstr = '$\ln r$'
+	else:
+		r = fld0.nlr
+		xstr = 'r'
+		
 	if q=='u':
 		fig = figure()
 		ax1=fig.add_subplot(211)
@@ -197,13 +204,13 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None):
 		ax1.set_title('u')
 		ax1.set_ylabel('Re(u)')
 		ax2.set_ylabel('Im(u)')
-		ax2.set_xlabel('$\ln r$')
-		l1,= ax1.plot(fld0.r,real(fld0.u),linestyle)
-		l2,= ax2.plot(fld0.r,imag(fld0.u),linestyle)
+		ax2.set_xlabel(xstr)
+		l1,= ax1.plot(r,real(fld0.u),linestyle)
+		l2,= ax2.plot(r,imag(fld0.u),linestyle)
 		l1range = (real(dat).min(),real(dat).max())
 		l2range = (imag(dat).min(),imag(dat).max())
 		for i in range(dat.shape[1]):
-			ax1.set_title('v, t='+str(t[i]*dt))
+			ax1.set_title('u, t='+str(t[i]*dt))
 			l1.set_ydata(real(dat[:,i]))
 			l2.set_ydata(imag(dat[:,i]))
 			ax1.set_ylim(l1range)
@@ -219,9 +226,9 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None):
 		ax1.set_title('v, t=0')
 		ax1.set_ylabel('Re(v)')
 		ax2.set_ylabel('Im(v)')
-		ax2.set_xlabel('$\ln r$')
-		l1,= ax1.plot(fld0.r,real(fld0.v),linestyle)
-		l2,= ax2.plot(fld0.r,imag(fld0.v),linestyle)
+		ax2.set_xlabel(xstr)
+		l1,= ax1.plot(r,real(fld0.v),linestyle)
+		l2,= ax2.plot(r,imag(fld0.v),linestyle)
 		l1range = (real(dat).min(),real(dat).max())
 		l2range = (imag(dat).min(),imag(dat).max())
 		for i in range(dat.shape[1]):
@@ -239,9 +246,9 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None):
 		ax1.set_title('$\\sigma / <\\Sigma>$, t=0')
 		ax1.set_ylabel('Re($\\sigma$)')
 		ax2.set_ylabel('Im($\\sigma$)')
-		ax2.set_xlabel('$\ln r$')
-		l1,= ax1.plot(fld0.r,real(fld0.sig),linestyle)
-		l2,= ax2.plot(fld0.r,imag(fld0.sig),linestyle)
+		ax2.set_xlabel(xstr)
+		l1,= ax1.plot(r,real(fld0.sig),linestyle)
+		l2,= ax2.plot(r,imag(fld0.sig),linestyle)
 		
 		l1range = (real(dat).min(),real(dat).max())
 		l2range = (imag(dat).min(),imag(dat).max())
@@ -264,12 +271,12 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None):
 		ax2.set_ylabel('$e_y$')
 		ax3.set_ylabel('e')
 		ax4.set_ylabel('$\\omega$')
-		ax4.set_xlabel('$\ln r$')	
+		ax4.set_xlabel(xstr)	
 		
-		l1,= ax1.plot(fld0.r,real(fld0.E),linestyle)
-		l2,= ax2.plot(fld0.r,imag(fld0.E),linestyle)
-		l3,= ax3.plot(fld0.r,abs(fld0.E),linestyle)
-		l4,= ax4.plot(fld0.r,angle(fld0.E),linestyle)
+		l1,= ax1.plot(r,real(fld0.E),linestyle)
+		l2,= ax2.plot(r,imag(fld0.E),linestyle)
+		l3,= ax3.plot(r,abs(fld0.E),linestyle)
+		l4,= ax4.plot(r,angle(fld0.E),linestyle)
 		
 		l1range = (real(dat).min(),real(dat).max())
 		l2range = (imag(dat).min(),imag(dat).max())

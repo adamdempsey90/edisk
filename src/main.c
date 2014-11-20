@@ -69,7 +69,7 @@ int main(int argc, char *argv[]) {
 
 //		MPI_Printf ("\t step #%d, step size = %.5e, at t=%.5e \n", numstep,dt, t);
    
-#if defined(KILLIN) || defined(KILLOUT)
+#ifdef WAVEKILLBC
 		wavekillbc(fld,dt);
 #endif
 	 

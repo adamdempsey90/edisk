@@ -19,7 +19,7 @@ void init_fld(Mode *fld) {
 	for(i=0;i<NTOT;i++) {
 		lr = (Params->rmin) + (.5 + i -NG ) * dr;
 		fld->r[i] = lr;
-		r = exp(lr);
+		r = pow(10,lr);
 	
 		Params->hor[i] = (Params->h)*pow(r,Params->indfl);
 
@@ -69,16 +69,16 @@ void user_ic(Mode *fld) {
 	double w = Params->w0;
 	double lr, r;
 	double complex E0;
-	double sigma = .2;
+	double sigma = .4;
 	double r0 = 0;
 	for(i=istart;i<iend;i++) {
 		lr = (fld->r[i]);
-		r = exp(lr);
+		r = pow(10,lr);
 		E0 = e0*cexp(I*w); //* cexp(I*drw*lr);
 		
-		E0 = cos( .5*M_PI*(exp(fld->r[iend-1]) - r)/(exp(fld->r[iend-1])-exp(fld->r[istart])));
+//		E0 = cos( .5*M_PI*(exp(fld->r[iend-1]) - r)/(exp(fld->r[iend-1])-exp(fld->r[istart])));
 		
-//		E0 *= exp(-(lr-r0)*(lr-r0)/(sigma*sigma));
+		E0 = e0 * cexp(I*w) * exp(-(lr-r0)*(lr-r0)/(sigma*sigma));
 
 		fld->u[i] += I*(bfld->v[i])*E0;
 		fld->v[i] += .5*(bfld->v[i])*E0;	

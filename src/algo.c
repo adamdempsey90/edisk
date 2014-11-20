@@ -50,7 +50,7 @@ void algogas(double t,Mode *fld) {
 #endif	
 	for(i=istart;i<iend;i++) {
 		it = i-istart;
-		r = exp(fld->r[i]);
+		r = pow(10,fld->r[i]);
 		r2 = r*r;
 
 
@@ -159,16 +159,16 @@ void algogas(double t,Mode *fld) {
 
 /* Viscosity */
 
- 		fld->dtu[it] += nu*(d2ru - m*m*u)/r2;
+// 		fld->dtu[it] += nu*(d2ru - m*m*u)/r2;
 	
 	
-// 		fld->dtu[it] += 2*nu*d2ru + 2*nu*dru/r
-// 					-(I*nu*m/r)*(drv - v/r - I*m*u/r)
-// 					-(2*nu/(r*r))*(u-I*m*v)
-// 					+nu*r*2*dru*nusinds
-// 					-(I*nu*m/r)*omk*dlomk*sig
-// 					-(2.*nu/(3.*r))*(divv*nusinds + dru - u/r + r*d2ru - I*m*drv+I*m*v/r);
-// 					
+		fld->dtu[it] += 2*nu*d2ru + 2*nu*dru/r
+					-(I*nu*m/r)*(drv - v/r - I*m*u/r)
+					-(2*nu/(r*r))*(u-I*m*v)
+					+nu*r*2*dru*nusinds
+					-(I*nu*m/r)*omk*dlomk*sig
+					-(2.*nu/(3.*r))*(divv*nusinds + dru - u/r + r*d2ru - I*m*drv+I*m*v/r);
+ 					
 /* Stellar Potential indirect term */
 #ifdef COMPANION
 		fld->dtu[it] += cstar->gr[it];
@@ -182,14 +182,14 @@ void algogas(double t,Mode *fld) {
 		
 /* Viscosity */
 
- 		fld->dtv[it] += nu*(d2rv- m*m*v)/r2;
+ //		fld->dtv[it] += nu*(d2rv- m*m*v)/r2;
 
-// 		fld->dtv[it] += nu*(d2rv + drv/r - (v+I*m*u)/(r*r) - I*m*dru/r)
-// 					-I*m*nu*(u-I*m*v)*2/(r*r) 
-// 					+ nu*(r*drv-v-I*m*u)*nusinds
-// 					+ nu*omk*dlomk*drs
-// 					-(2.*nu/(3.*r))*(-I*m*divv);
-// 					
+		fld->dtv[it] += nu*(d2rv + drv/r - (v+I*m*u)/(r*r) - I*m*dru/r)
+					-I*m*nu*(u-I*m*v)*2/(r*r) 
+					+ nu*(r*drv-v-I*m*u)*nusinds
+					+ nu*omk*dlomk*drs
+					-(2.*nu/(3.*r))*(-I*m*divv);
+ 					
 					
 /* Stellar Potential indirect term */
 #ifdef COMPANION
@@ -200,6 +200,7 @@ void algogas(double t,Mode *fld) {
 
 
 		fld->dts[it] += I*m*omk*sig - (u/r)*(Params->indsig) - divv;
+//		fld->dts[it] += I*m*omk*sig  - (1 + Params->indsig)*(u/r) - dru/r + I*m*v/r;
 	
 	}
 #ifdef OUTRHS

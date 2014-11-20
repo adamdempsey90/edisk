@@ -14,7 +14,7 @@ void init_star(Mode *fld) {
 	double grfac;
 	double complex gpfac;
 	
-	cstar->ms = .1;
+	cstar->ms = .05;
 	cstar->r = 15.;
 	cstar->phi = 0;
 	
@@ -22,7 +22,7 @@ void init_star(Mode *fld) {
 	gpfac = (I*(fld->m)*(cstar->ms)/(2*(cstar->r)));
 
 	for(i=0;i<NR;i++) {
-		r = exp((fld->r[i+istart]));
+		r = pow(10,(fld->r[i+istart]));
 		cstar->gr[i] = dlaplace(.5,fld->m,r/(cstar->r));
 		cstar->gp[i]  = laplace(.5,fld->m,r/(cstar->r));
 	
