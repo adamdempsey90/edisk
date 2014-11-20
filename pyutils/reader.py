@@ -170,6 +170,24 @@ class Field():
 			plot(x[:,i],y[:,i],'-k')
 			
 		return x,y
+	
+	def plotdens(self,Nph=200,starpos=(0,0)):
+		phi = linspace(-pi,pi,Nph)
+		dens = zeros((len(fld.nlr),Nph))	
+		densp = zeros((len(fld.nlr),Nph))
+		x = zeros((len(fld.nlr),Nph))
+		y = zeros((len(fld.nlr),Nph))
+		for i in range(Nph):
+			dens[:,i] = fld.dbar*(1 + 2*real(fld.sig*exp(-1j*phi[i])));
+			densp[:,i] = dens[:,i]/fld.dbar - 1;
+			x[:,i] = fld.nlr * cos(phi[i])
+			y[:,i] = fld.nlr * sin(phi[i])
+		
+		figure()
+		pcolormesh(x,y,densp); colorbar()
+		plot([starpos[0]],[starpos[1]],'*')
+		title('$\\frac{\Sigma - <\Sigma>}{<\Sigma>}$')
+		
 		
 def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None,logr=True):
 	if fld0==None:
@@ -346,4 +364,19 @@ def animate_ellipse(t,num_ellipse,(xc,yc)=(0,0),Nph=200):
 			ax1.set_ylim(l1range)
 			ax2.set_ylim(l2range)
 			fig.canvas.draw()
-	
+
+
+class star():
+	def __init__(self,r,dbar,m,soft):
+			self.rs = 2*pi * trapz(dbar*r*r,x=r)
+			phi = linspace(0,pi,2000)
+			self.gr = zeros(r.shape)
+			self.gp = zeros(r.shape,dtype='complex')
+			self.phi = zeros(r.shape)
+			for i in range(len(r)):
+				rsoft = r[i]*r[i] + soft*soft
+				q = self.rs / sqrt(rsoft)	
+				self.phi[i] = -2/sqrt(rsoft) * trapz(cos(m*phi)/sqrt(1+q*q+2*q*cos(phi)),x=phi)
+				self.gr[i] = -2*self.rs*r[i] / rsoft**2 * trapz(cos(m*phi)*(cos(phi) +q)*(1+q*q+2*q*cos(phi))**(-1.5),x=phi)
+				self.gp[i] = -1j*m * self.phi[i] / sqrt(rsoft)
+

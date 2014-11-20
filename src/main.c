@@ -18,9 +18,7 @@ int main(int argc, char *argv[]) {
 	bfld = (Bmode *)malloc(sizeof(Bmode));
 	Params = (Parameters *)malloc(sizeof(Parameters));
 
-#ifdef COMPANION
 	cstar = (Star *)malloc(sizeof(Star));
-#endif
 
 	
 	

@@ -81,6 +81,7 @@ void output_params(void) {
 		\talpha = %lg\n \
 		\tsigma0 = %lg\n \
 		\tsigma index = %lg\n \
+		\tMdisk = %lg\n \
 		\trot index =  %lg\n \
 		\t# Initial Eccentricity #\n \
 		\tinitial e = %lg\n \
@@ -88,7 +89,6 @@ void output_params(void) {
 		\t# Star Parameters	#\n \
 		\trsoft = %lg\n \
 		\tMs = %lg\n \
-		\toms = %lg\n \
 		\t# Time Parameters	#\n \
 		\tt0 = %lg\n \
 		\ttau = %lg\n \
@@ -105,12 +105,12 @@ void output_params(void) {
 		Params->alpha,
 		Params->sig0,
 		Params->indsig,
+		Params->Mdisk,
 		Params->q,
 		Params->e0,
 		Params->w0,
 		Params->rs,
 		Params->ms,
-		Params->oms,
 		Params->t0,
 		Params->tau,
 		Params->endt,

@@ -1,5 +1,5 @@
 EXECUTABLE=edisk
-SOURCES=algo.c  init.c rk45.c rkf.c alloc.c main.c readinputs.c utils.c output.c companion.c boundary.c
+SOURCES=algo.c  init.c rk45.c rkf.c alloc.c main.c readinputs.c utils.c output.c star.c boundary.c
 HEADER=edisk.h rk45.h
 
 LDFLAGS=-lm -lgomp

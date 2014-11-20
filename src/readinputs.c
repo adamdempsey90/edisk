@@ -48,7 +48,6 @@ void read_inputs(char *inputdir) {
 	fgets(garbage,sizeof(garbage),f);	// Star Parameters
 	fscanf(f,"rsoft =  %lg \n",&rs);
 	fscanf(f,"Ms =  %lg \n",&ms);
-	fscanf(f,"oms =  %lg \n",&oms);
 	fgets(garbage,sizeof(garbage),f);	// Time Parameters
 	fscanf(f,"t0 =  %lg \n",&t0);
 	fscanf(f,"tau =  %lg \n",&tau);
@@ -72,14 +71,20 @@ void read_inputs(char *inputdir) {
 	Params->w0 = w0;
 	Params->rs = rs;
 	Params->ms = ms;
-	Params->oms = oms;
 	Params->t0 = t0;
 	Params->tau = tau;
 	Params->endt = endt;
 	Params->numf = numf;
 	Params->tol = tol;
 	Params->dr  = (rmax - rmin) / NR;
-	Params->om0 = sqrt(Params->ms);
+	Params->rs *= (Params->h);
+	if (indsig != -2) {
+		Params->Mdisk = 2*M_PI*sig0 * (pow(pow(10,rmax),indsig+2)-pow(pow(10,rmin),indsig+2))/(indsig+2);
+	}
+	else {
+		Params->Mdisk = 2*M_PI*sig0 * (rmax-rmin);
+	}
+	Params->om0 = sqrt(Params->ms + Params->Mdisk);
 	strcpy(Params->outdir,outdir);
 	NTOT = NR+2*NG;
 	
@@ -100,6 +105,7 @@ void read_inputs(char *inputdir) {
 		\talpha = %lg\n \
 		\tsigma0 = %lg\n \
 		\tsigma index = %lg\n \
+		\tMdisk = %lg\n \
 		\trot index =  %lg\n \
 		\t# Initial Eccentricity #\n \
 		\tinitial e = %lg\n \
@@ -107,7 +113,6 @@ void read_inputs(char *inputdir) {
 		\t# Star Parameters	#\n \
 		\trsoft = %lg\n \
 		\tMs = %lg\n \
-		\toms = %lg\n \
 		\t# Time Parameters	#\n \
 		\tt0 = %lg\n \
 		\ttau = %lg\n \
@@ -124,12 +129,12 @@ void read_inputs(char *inputdir) {
 		Params->alpha,
 		Params->sig0,
 		Params->indsig,
+		Params->Mdisk,
 		Params->q,
 		Params->e0,
 		Params->w0,
 		Params->rs,
 		Params->ms,
-		Params->oms,
 		Params->t0,
 		Params->tau,
 		Params->endt,

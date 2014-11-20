@@ -54,13 +54,11 @@ void alloc_fld(Mode *fld) {
 	if (Params->c2 == NULL) malloc_err("c2");
 	
 	
-#ifdef COMPANION
 	
 	cstar->gr = (double complex *)malloc(sizeof(double complex)*NR);
 	if (cstar->gr == NULL) malloc_err("gr");
 	cstar->gp = (double complex *)malloc(sizeof(double complex)*NR);
 	if (cstar->gp == NULL) malloc_err("gp");
-#endif
 	return;
 }
 

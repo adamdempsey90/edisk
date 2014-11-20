@@ -1,13 +1,13 @@
 # Input Parameters #
 # Disk Parameters	#
-Nr = 2048
+Nr = 1024
 m = 1.0
-rmin = -1.5
-rmax = 1.0
+rmin = -1
+rmax = 0
 h0 = .05
 flare index = 0.0
-alpha = 0.1
-sigma0 = .0001
+alpha = 0.01
+sigma0 = .01
 sigma index = -.75
 rot index =  -1.5
 # Initial Eccentricity  #
@@ -16,11 +16,10 @@ initial a.o.p = 0
 # Star Parameters	#
 rsoft = .6
 Ms = 1.0
-oms = 0
 # Time Parameters	#
 t0 = 0
 tau = 0
-endt = 100
-numf = 100
+endt = 500
+numf = 250
 tol = 1e-8
 outputdir = outputs/

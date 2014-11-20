@@ -37,9 +37,12 @@ void algogas(double t,Mode *fld) {
 	double dlomk,nusinds;
 	double dr,dr2,m, r,r2,omk,omf;
 	double c2,nu;
-	
-	omf = Params->oms;
 
+#ifdef INDIRECT	
+	omf = Params->oms;
+#else
+	omf = 0;
+#endif;
 	
 	dr = Params->dr;
 	dr2 = dr*dr;
@@ -170,7 +173,7 @@ void algogas(double t,Mode *fld) {
 					-(2.*nu/(3.*r))*(divv*nusinds + dru - u/r + r*d2ru - I*m*drv+I*m*v/r);
  					
 /* Stellar Potential indirect term */
-#ifdef COMPANION
+#ifdef INDIRECT
 		fld->dtu[it] += cstar->gr[it];
 #endif
 
@@ -192,7 +195,7 @@ void algogas(double t,Mode *fld) {
  					
 					
 /* Stellar Potential indirect term */
-#ifdef COMPANION
+#ifdef INDIRECT
 		fld->dtu[it] += cstar->gp[it];
 #endif
 

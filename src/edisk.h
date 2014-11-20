@@ -23,6 +23,8 @@ static double d2c[5] = {-1./12,4./3,-5./2,4./3,-1./12};
 //#define ZEROBC
 #define OPENMP
 
+
+#define INDIRECT
 //#define COMPANION
 
 typedef struct Mode {
@@ -50,6 +52,7 @@ typedef struct Parameters {
 			indnu,
 			sig0,
 			indsig,
+			Mdisk,
 			om0,
 			q,
 			e0,
