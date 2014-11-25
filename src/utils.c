@@ -33,3 +33,73 @@ void f_2_fld(Mode *fld, double complex *q) {
 	
 	return;
 }
+
+
+
+void matmat(double complex *A, double complex *B, double complex *C, 
+					double complex alpha, double complex beta) 
+{
+/* Performs \alpha * A.B + \beta * C and stores the output in C.
+	A,B, and C are all matrices.
+	This is essenitally a wrapper for the ZGEMM BLAS routine 
+*/
+
+	char TRANSA = 'N';
+	char TRANSB = 'N';
+	int m = 3;
+	int n = 3;
+	int k = 3;
+	int LDA = 3;
+	int LDB = 3;
+	int LDC = 3;
+		 
+	
+	
+	zgemm_(&TRANSA, &TRANSB, &m,&n,&k,&alpha,A,&LDA,B,&LDB,&beta,C,&LDC);
+
+
+	return;
+
+}
+
+
+void matvec(double complex *A, double complex *B, double complex *C, 
+					double complex alpha, double complex beta) 
+{
+/* Performs \alpha * A.B + \beta * C and stores the output in C. 
+	A is a matrix, B and C are vectors.
+	This is essenitally a wrapper for the ZGEMV BLAS routine 
+*/
+
+	char TRANS = 'N';
+	int m = 3;
+	int n = 3;
+	int LDA = 3;
+	int INCX = 1;
+	int INCY = 1;
+		 
+	
+	
+	zgemv_(&TRANS, &m,&n,&alpha,A,&LDA,B,&INCX,&beta,C,&INCY);
+
+
+	return;
+
+}
+
+
+void matsolve(double complex *A, double complex *B) {
+/* Solves the system A.x = B for x 
+	x is stored in B on output
+	This is essentially a wrapper for the ZGESV BLAS routine
+*/
+	int N = 3;
+	int NRHS = 4;
+	int LDA = 3;
+	int IPIV[N];
+	int LDB = 4;
+	int INFO;
+	zgesv_(&N,&NRHS,A,&LDA,&IPIV,B,&LDB,&INFO);
+
+	return;
+}	

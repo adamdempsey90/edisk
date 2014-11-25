@@ -187,7 +187,7 @@ class Field():
 		pcolormesh(x,y,densp); colorbar()
 		plot([starpos[0]],[starpos[1]],'*')
 		title('$\\frac{\Sigma - <\Sigma>}{<\Sigma>}$')
-		
+		return
 		
 def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None,logr=True):
 	if fld0==None:

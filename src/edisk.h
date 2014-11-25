@@ -108,6 +108,12 @@ void set_bc(Mode *fld);
 void wavekillbc(Mode *fld,double dt);
 void init_star(Mode *fld);
 
+void matmat(double complex *A, double complex *B, double complex *C, 
+					double complex alpha, double complex beta);
+					
+void matvec(double complex *A, double complex *B, double complex *C, 
+					double complex alpha, double complex beta);
+void matsolve(double complex *A, double complex *B);
 
 int NR, istart, iend, NTOT;
 int outnum;

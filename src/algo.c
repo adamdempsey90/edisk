@@ -42,7 +42,7 @@ void algogas(double t,Mode *fld) {
 	omf = Params->oms;
 #else
 	omf = 0;
-#endif;
+#endif
 	
 	dr = Params->dr;
 	dr2 = dr*dr;
@@ -167,8 +167,8 @@ void algogas(double t,Mode *fld) {
 	
 		fld->dtu[it] += 2*nu*d2ru + 2*nu*dru/r
 					-(I*nu*m/r)*(drv - v/r - I*m*u/r)
-					-(2*nu/(r*r))*(u-I*m*v)
-					+nu*r*2*dru*nusinds
+					-(2*nu/r2)*(u-I*m*v)
+					+nu*2*dru*nusinds/r2
 					-(I*nu*m/r)*omk*dlomk*sig
 					-(2.*nu/(3.*r))*(divv*nusinds + dru - u/r + r*d2ru - I*m*drv+I*m*v/r);
  					
@@ -189,7 +189,7 @@ void algogas(double t,Mode *fld) {
 
 		fld->dtv[it] += nu*(d2rv + drv/r - (v+I*m*u)/(r*r) - I*m*dru/r)
 					-I*m*nu*(u-I*m*v)*2/(r*r) 
-					+ nu*(r*drv-v-I*m*u)*nusinds
+					+ nu*(drv-v-I*m*u)*nusinds/r2
 					+ nu*omk*dlomk*drs
 					-(2.*nu/(3.*r))*(-I*m*divv);
  					
@@ -212,3 +212,8 @@ void algogas(double t,Mode *fld) {
 	return;
 
 } 
+
+
+
+
+

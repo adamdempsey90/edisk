@@ -1,8 +1,8 @@
 EXECUTABLE=edisk
-SOURCES=algo.c  init.c rk45.c rkf.c alloc.c main.c readinputs.c utils.c output.c star.c boundary.c
+SOURCES=init.c rk45.c rkf.c alloc.c main.c readinputs.c utils.c output.c star.c boundary.c implicit.c
 HEADER=edisk.h rk45.h
 
-LDFLAGS=-lm -lgomp
+LDFLAGS=-llapack -lblas -lm -lgomp
 
 CFLAGS=-c -fopenmp -Wall -O3 
 
