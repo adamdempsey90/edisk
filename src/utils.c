@@ -43,9 +43,10 @@ void matmat(double complex *A, double complex *B, double complex *C,
 	A,B, and C are all matrices.
 	This is essenitally a wrapper for the ZGEMM BLAS routine 
 */
-
-	char TRANSA = 'N';
-	char TRANSB = 'N';
+	double complex tC[3][3];
+	int i,j;
+	char TRANSA = 't';
+	char TRANSB = 't';
 	int m = 3;
 	int n = 3;
 	int k = 3;
@@ -54,10 +55,24 @@ void matmat(double complex *A, double complex *B, double complex *C,
 	int LDC = 3;
 		 
 	
+	for(i=0;i<3;i++) {
+		for(j=0;j<3;j++) tC[j][i] = C[j + 3*i];
+	}
+	
+	for(i=0;i<3;i++) {
+		for(j=0;j<3;j++)	C[i + 3*j] = tC[j][i];
+	}
 	
 	zgemm_(&TRANSA, &TRANSB, &m,&n,&k,&alpha,A,&LDA,B,&LDB,&beta,C,&LDC);
 
 
+	for(i=0;i<3;i++) {
+		for(j=0;j<3;j++) tC[j][i] = C[j + 3*i];
+	}
+	
+	for(i=0;i<3;i++) {
+		for(j=0;j<3;j++)	C[i + 3*j] = tC[j][i];
+	}
 	return;
 
 }
@@ -71,7 +86,7 @@ void matvec(double complex *A, double complex *B, double complex *C,
 	This is essenitally a wrapper for the ZGEMV BLAS routine 
 */
 
-	char TRANS = 'N';
+	char TRANS = 't';
 	int m = 3;
 	int n = 3;
 	int LDA = 3;
@@ -79,9 +94,8 @@ void matvec(double complex *A, double complex *B, double complex *C,
 	int INCY = 1;
 		 
 	
-	
-	zgemv_(&TRANS, &m,&n,&alpha,A,&LDA,B,&INCX,&beta,C,&INCY);
 
+	zgemv_(&TRANS, &m,&n,&alpha,A,&LDA,B,&INCX,&beta,C,&INCY);
 
 	return;
 
@@ -93,13 +107,47 @@ void matsolve(double complex *A, double complex *B) {
 	x is stored in B on output
 	This is essentially a wrapper for the ZGESV BLAS routine
 */
+	double complex tB[4][3], tA[3][3];
+	int i,j;
 	int N = 3;
 	int NRHS = 4;
 	int LDA = 3;
 	int IPIV[N];
-	int LDB = 4;
+	int LDB = 3;
 	int INFO;
+	
+	for(i=0;i<3;i++) {
+		for(j=0;j<4;j++) {
+			if (j<3) {
+				tA[j][i] = A[j + 3*i];
+			}
+			tB[j][i] = B[j+4*i];
+		}
+	}
+	
+	for(i=0;i<3;i++) {
+		for(j=0;j<4;j++) {
+			if (j<3) {
+				A[i + 3*j] = tA[j][i];
+			}
+			B[i+3*j] = tB[j][i];
+		}
+	}
+	
+	
 	zgesv_(&N,&NRHS,A,&LDA,&IPIV,B,&LDB,&INFO);
+
+	for(i=0;i<3;i++) {
+		for(j=0;j<4;j++) {
+			tB[j][i] = B[i+3*j];
+		}
+	}
+	
+	for(i=0;i<3;i++) {
+		for(j=0;j<4;j++) {
+			B[j + 4*i] = tB[j][i];
+		}
+	}
 
 	return;
 }	

@@ -88,12 +88,11 @@ void free_fld(Mode *fld) {
 	free(Params->c2);
 	free(Params);
 
-#ifdef COMPANION
+
 	free(cstar->gp);
 	free(cstar->gr);
 	free(cstar);
 
-#endif
 	return;
 }
 

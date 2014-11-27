@@ -44,11 +44,20 @@ void output(Mode *fld) {
 	if (f == NULL) printf("ERROR: Couldn't open output file\n");
 	fprintf(f,"#r\tRe(u)\tIm(u)\tRe(v)\tIm(v)\tRe(s)\tIm(s)\tvybar\tomk\tsigbar\n");
 	for(i=0;i<NTOT;i++) {
+//		MPI_Printf("writing #%d\n",i);
+//		MPI_Printf("%lg\n", fld->r[i]);
+// 		MPI_Printf("%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
+// 			fld->r[i],
+// 			creal(fld->u[i]),cimag(fld->u[i]),
+// 			creal(fld->v[i]),cimag(fld->v[i]),
+// 			creal(fld->sig[i]),cimag(fld->sig[i]),
+// 			bfld->v[i],bfld->omk[i],bfld->sig[i]);
+			
 		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
 			fld->r[i],
 			creal(fld->u[i]),cimag(fld->u[i]),
 			creal(fld->v[i]),cimag(fld->v[i]),
-			creal(fld->sig[i+istart]),cimag(fld->sig[i+istart]),
+			creal(fld->sig[i]),cimag(fld->sig[i]),
 			bfld->v[i],bfld->omk[i],bfld->sig[i]);
 	}
 

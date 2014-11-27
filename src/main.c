@@ -37,26 +37,38 @@ int main(int argc, char *argv[]) {
 
 	
 	init_output(Params->outdir);
-	
+
+
+#ifdef IMPLICIT
+	solver_init();
+#else	
 	init_rk45();
+#endif
 
 	output_disk(fld->r);
 	output(fld);
 	
-  	double	h = .1;
+  	double	h = 100*.8*(Params->dr) / (bfld->omk[0]);
   	double 	t=Params->t0;
   	double dt;
   	i=1;
 	int term_status=0;
 	int numstep=0; double avgdt=0;
-	
+
+
+	MPI_Printf("Starting Time Loop\n");	
 	while (t < Params->endt)
     {
       
 		dt = t;
 
 		
-		int status = rk45_step_apply(&algo,fld,&t,&h); 
+		 
+#ifdef IMPLICIT		
+		int status = cranknicholson_step(&t, &h, fld);
+#else
+		int status = rk45_step_apply(&algo,fld,&t,&h);
+#endif		
 		numstep++;
 		 if (status == -1) {
 			MPI_Printf("ERROR With Step...\nTerminating Run...\n");
@@ -64,8 +76,7 @@ int main(int argc, char *argv[]) {
 		}
 		dt = t-dt;
 		avgdt += dt;
-
-//		MPI_Printf ("\t step #%d, step size = %.5e, at t=%.5e \n", numstep,dt, t);
+		MPI_Printf ("\t step #%d, step size = %.5e, at t=%.5e \n", numstep,dt, t);
    
 #ifdef WAVEKILLBC
 		wavekillbc(fld,dt);
@@ -74,7 +85,7 @@ int main(int argc, char *argv[]) {
 	  
 		if( t >= Params->t0 + i * (Params->endt) / ((double) Params->numf)) { 
 			 MPI_Printf ("\t\t OUTPUT %d, step size = %.5e, at t=%.5e \n", outnum,h,t);
-		
+			
 			output(fld);
 			i++;
 		 }
@@ -90,7 +101,12 @@ int main(int argc, char *argv[]) {
 
 		}
     }
-    free_rk45();
+
+#ifdef IMPLICIT
+	solver_free();
+#else	
+	free_rk45();
+#endif
    	free_fld(fld);
     toc = clock(); 
     print_time( (double)(toc - tic) / CLOCKS_PER_SEC );

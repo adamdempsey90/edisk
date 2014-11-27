@@ -50,9 +50,10 @@ void init_fld(Mode *fld) {
 
 
 	user_ic(fld);
-	
+
+#ifdef INDIRECT	
 	init_star(fld);
-	
+#endif
 	
 	return;
 }
@@ -67,8 +68,8 @@ void user_ic(Mode *fld) {
 	double w = Params->w0;
 	double lr, r;
 	double complex E0;
-	double sigma = .4;
-	double r0 = 0;
+	double sigma = .05;
+	double r0 = -.2;
 	for(i=istart;i<iend;i++) {
 		lr = (fld->r[i]);
 		r = pow(10,lr);
@@ -76,8 +77,8 @@ void user_ic(Mode *fld) {
 		
 //		E0 = cos( .5*M_PI*(exp(fld->r[iend-1]) - r)/(exp(fld->r[iend-1])-exp(fld->r[istart])));
 		
-//		E0 = e0 * cexp(I*w) * exp(-(lr-r0)*(lr-r0)/(sigma*sigma));
-		E0 = 0;
+		E0 = e0 * cexp(I*w) * exp(-(lr-r0)*(lr-r0)/(sigma*sigma));
+//		E0 = 0;
 		fld->u[i] += I*(bfld->v[i])*E0;
 		fld->v[i] += .5*(bfld->v[i])*E0;	
 	}

@@ -4,99 +4,159 @@
 #define ind3(i,j) (i + 3*j)
 
 
-double complex M[3][3], U[3][3], L[3][3], K[3];
-double complex *G, *H, *UK, *HG;
+double complex M[3][3], U[3][3], L[3][3], K[3], UK[3][4];
+
+typedef struct CNmats {
+
+	double complex G[3];
+	double complex H[3][3];
+
+} CNmats;
 
 
-void cranknicholson_step(double dt, Mode *fld) {
-	
-	int i;
-	
+void solver(double dt, Mode *fld);
+void get_matrices(double dt, double r, double m, double nu, double c, double omk, 
+							double dlomk, double complex ul, double complex uc, 
+							double complex ur, double complex vl, double complex vc,
+							double complex vr, double complex sl, double complex sc, 
+							double complex sr);
+							
+void solver_init(void);
+void solver_free(void);
+
+void get_bc_matrix(double complex u, double complex v, double complex s);
+
+
+CNmats *cn_mats;
+							
+int cranknicholson_step(double *t, double *dt, Mode *fld) {
+		
 	set_bc(fld);
 	
-	solver(dt,fld);
+	solver(*dt,fld);
+	
+	*t += *dt;
 
-	return;
+	return 1;
 }
 
 
 void solver(double dt, Mode *fld) {
 	int i;
 	
-	int ir,ic,ind,ind4;
-
+	int ir,ic,indx,indx4;
+	int Gpind, Hpind;
+	int Gind, Hind, Gnind;
 
 /* Step 1. Forward Solve */	
-	for(i=istart;i<iend;i++) {
-		Gpind = (i-istart - 1)*3;
-		Hpind = (i-istart - 1)*3*3;
+	for(i=0;i<NTOT;i++) {
+	
 	
 /* Step 1.1 Get the A,B,C, and K block matrices 	*/
-		get_matrices(dt,pow(10.,fld->r[i]), fld->m,fld->nu[i],
-						fld->c[i],fld->omk[i],fld->dlomk[i],
-						fld->u[i-1],fld->u[i],fld->u[i+1],
-						fld->v[i-1],fld->v[i],fld->v[i+1],
-						fld->sig[i-1],fld->sig[i],fld->sig[i+1]);
+		if (i!=0 && i!=NTOT-1) {
+			get_matrices(dt,pow(10.,fld->r[i]), fld->m,Params->nu[i],
+							Params->c2[i],bfld->omk[i],bfld->dlomk[i],
+							fld->u[i-1],fld->u[i],fld->u[i+1],
+							fld->v[i-1],fld->v[i],fld->v[i+1],
+							fld->sig[i-1],fld->sig[i],fld->sig[i+1]);
+		}
+		else {
 		
+			get_bc_matrix(fld->u[i],fld->v[i],fld->sig[i]);
+		
+		}
+//		printf("GOT MATS\n");
 /* Step 1.2 Setup UK matrix and solve for HG matrix  */
 
-		if (i!=istart) matvec(&L,&G[gpind],&K,-1,1);
-				
-		for(ir=0;ir<3;i++) {
-			for(ic=0;ic<4;ic++) {
-				indx4 = ir + 4*ic;
-				indx = ir + 3*ic;
-			
-				if (ic != 3) {
-					UK[indx4] = -U[i][j];	
-				}
-				else {
-					UK[indx4] = K[i];
-				}
-		
-			}
-		}	
-		
-		if (i != istart) matmat(&L,&H[Hpind],&M,1,1);
-		solve(&M,UK)		
+// 		printf("%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
+// 		creal(K[0]),cimag(K[0]),
+// 		creal(K[1]),cimag(K[1]),
+// 		creal(K[2]),cimag(K[2]));
+//		printf("MATVEC\n");
+		if (i!=0) matvec(&L[0][0],&(cn_mats[i-1].G[0]),&K[0],-1,1);
 
-/* Step 1.3 Store H and G matrices */
-		for(ir=0;ir<3;i++) {
-			
-			for(ic=0;ic<4;ic++) {
-				indx4 = ir + 4*ic;
-				indx = ir + 3*ic;
-			
-				if (ic != 3) {
-					H[Hpind + indx] = UK[indx4]	
-				}
-				else {
-					G[Gpind + ir] = UK[indx4];
-				}
-		
-			}
+// 		printf("%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
+// 		creal(K[0]),cimag(K[0]),
+// 		creal(K[1]),cimag(K[1]),
+// 		creal(K[2]),cimag(K[2]));
+
+		for(ir=0;ir<3;ir++) {
+			for(ic=0;ic<3;ic++) UK[ir][ic] = -U[ir][ic];
+			UK[ir][3] = K[ir];
 		}
+			
+		
+		if (i != 0) matmat(&L[0][0],&(cn_mats[i-1].H[0][0]),&M[0][0],1,1);
+		
+// 		printf("\n\nUK\n\n");
+// 		printf("%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
+// 		creal(UK[0][3]),cimag(UK[0][3]),
+// 		creal(UK[1][3]),cimag(UK[1][3]),
+// 		creal(UK[2][3]),cimag(UK[2][3]));
+		
+		
+// 		printf("\n\n Solve \n\n");
+// 		for(ir=0;ir<3;ir++) {
+// 			for(ic=0;ic<3;ic++) {
+// 				printf("%lg + %lgi\t\t", creal(M[ir][ic]),cimag(M[ir][ic]));
+// 			}
+// 			if(ir==1) {
+// 				printf("=\t\t");
+// 			}
+// 			else {
+// 				printf(" \t\t");
+// 			}
+// 			for(ic=0;ic<4;ic++) {
+// 				printf("%lg + %lgi\t\t", creal(UK[ir][ic]),cimag(UK[ir][ic]));
+// 			}
+// 			printf("\n");
+// 		}
+		
+		matsolve(&M[0][0],&UK[0][0]);		
+//		printf("MATSOLVE\n\n");
+		
+// 		for(ir=0;ir<3;ir++) {
+// 			for(ic=0;ic<4;ic++) {
+// 				printf("%lg + %lgi\t\t", creal(UK[ir][ic]),cimag(UK[ir][ic]));
+// 			}
+// 			printf("\n");
+// 		}
+		
+/* Step 1.3 Store H and G matrices */
+		
+		for(ir=0;ir<3;ir++) {
+			for(ic=0;ic<3;ic++) cn_mats[i].H[ir][ic] = UK[ir][ic];
+			cn_mats[i].G[ir] = UK[ir][3];
+		}
+
 		
 
 	}
 /* Step 2. Backward Subsitution */
 
-	fld->u[iend-1] = G[ (iend-1-istart)*3 + 0];
-	fld->v[iend-1] = G[ (iend-1-istart)*3 + 1];
-	fld->sig[iend-1] = G[ (iend-1-istart)*3 + 2];
-	for(i=iend-2;i>=istart;i--) {
+// 	fld->u[NTOT-1] = G[ (iend-1-istart)*3 + 0];
+// 	fld->v[iend-1] = G[ (iend-1-istart)*3 + 1];
+// 	fld->sig[iend-1] = G[ (iend-1-istart)*3 + 2];
 
+	cn_mats[NTOT-1].G[0] = fld->u[NTOT-1];
+	cn_mats[NTOT-1].G[1] = fld->v[NTOT-1];
+	cn_mats[NTOT-1].G[2] = fld->sig[NTOT-1];
+	
+// 	printf("%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
+// 		creal(cn_mats[NTOT-1].G[0]),cimag(cn_mats[NTOT-1].G[0]),
+// 		creal(cn_mats[NTOT-1].G[1]),cimag(cn_mats[NTOT-1].G[1]),
+// 		creal(cn_mats[NTOT-1].G[2]),cimag(cn_mats[NTOT-1].G[2]));
 		
-		Gind = (i-istart)*3;
-		Hind = (i-istart)*3*3;
-		Gnind = (i-istart+1)*3;
-		
-/* Step 2.1 Get solution variables, stored in G */
-		matvec(&H[Hind],&G[Gnind],&G[ind]);
-/* Step 3 Copy G into fld */
-		fld->u[i] = G[ (i-istart)*3 + 0];
-		fld->v[i] = G[ (i-istart)*3 + 1];
-		fld->sig[i] = G[ (i-istart)*3 + 2];		
+	for(i=NTOT-2;i>0;i--) {
+	
+/* Step 2.1 Get solution variables, stored in G */	
+		matvec(&(cn_mats[i].H[0][0]),&(cn_mats[i+1].G[0]),&(cn_mats[i].G[0]),1,1);
+
+/* Step 3 Copy G into fld */		
+		fld->u[i] = cn_mats[i].G[0];
+		fld->v[i] = cn_mats[i].G[1];
+		fld->sig[i] = cn_mats[i].G[2];
+			
 		
 
 	}
@@ -107,16 +167,16 @@ void solver(double dt, Mode *fld) {
 
 
 
-void get_matrices(double dt, double r, double m, double nu, double c, double omk, 
-							double dlomk, double complex ul, double complex uc, 
-							double complex ur, double complex vl, double complex vc,
-							double complex vr, double complex sl, double complex sc, 
-							double complex sr) 
+void get_matrices(double dt, double r, double m, double nu,
+						    double c, double omk, double dlomk, 
+							double complex ul,double complex uc, double complex ur, 
+							double complex vl, double complex vc, double complex vr, 
+							double complex sl, double complex sc, double complex sr) 
 {
 /* Fill the A,B,C,K matrices 
-	A = Lower Diagonal
-	B = Main Diagonal
-	C = Upper Diagonal
+	A = Main Diagonal
+	B = Coefficient Matrix for D X
+	C = Coefficient Matrix for D^2 X
 	K = Vector of known RHS quantities
 	
 */
@@ -124,12 +184,18 @@ void get_matrices(double dt, double r, double m, double nu, double c, double omk
 	int i,j;
 	
 	double dr  = (Params->dr);		// Logarithmic spacing
-	double omf = Params->oms;
+	double omf;
 	double r2 = r*r;
 	double dr2 = dr * dr;
 	double m2 = m*m;
 	
 	double gam = Params->indsig + Params->indnu ;
+	
+#ifdef INDIRECT 
+	omf = Params->oms;
+#else
+	omf = 0;
+#endif
 	
 /* Main Diagonal, inviscid */	
 	A[0][0] = I*m*omk;
@@ -163,25 +229,25 @@ void get_matrices(double dt, double r, double m, double nu, double c, double omk
 
 	B[0][0] = 0;
 	B[0][1] = 0;
-	B[0][2] = -c;
+	B[0][2] = -c/r;
 	
 	B[1][0] = 0;
 	B[1][1] = 0;
 	B[1][2] = 0;
 	
-	B[2][0]= -1.0;
+	B[2][0]= -1.0/r;
 	B[2][1] = 0;
 	B[2][2] = 0;
 
 /* D matrix, viscous */	
 
-	B[0][0] += (nu/r)*( (-2./3) + (4./3)*gam);
-	B[0][1] += ( - I * m *nu/(3*r));
+	B[0][0] += (nu/r2)*( (-2./3) + (4./3)*gam);
+	B[0][1] += ( - I * m *nu/(3*r2));
 	B[0][2] += 0;
 	
-	B[1][0] += (-I*m*nu/(3*r));
-	B[1][1] += nu*gam/r;
-	B[1][2] += omk*dlomk*nu;
+	B[1][0] += (-I*m*nu/(3*r2));
+	B[1][1] += nu*gam/r2;
+	B[1][2] += omk*dlomk*nu/r;
 	
 	B[2][0] += 0;
 	B[2][1] += 0;
@@ -211,52 +277,70 @@ void get_matrices(double dt, double r, double m, double nu, double c, double omk
 
 /* Construct Crank-Nicholson matrices */
 
-
 	for(i=0;i<3;i++) {
 		for(j=0;j<3;j++) {
-			ind = i + 3*j;
 			
-			M[ind] = .5*dt* (A[i][j] - 2*C[i][j]/dr2);
-			U[ind] = .5*dt*(C[i][j]/dr2 + B[i][j] / (2*r*dr));
-			L[ind] = .5*dt*(C[i][j]/dr2 - B[i][j] / (2*r*dr));
+			M[i][j] = .5*dt* (A[i][j] - 2*C[i][j]/dr2);
+			U[i][j]= .5*dt*(C[i][j]/dr2 + .5*B[i][j]/dr);
+			L[i][j] = .5*dt*(C[i][j]/dr2 - .5*B[i][j]/dr);
+		}
+	}
+	K[0] =    M[0][0]*uc + M[0][1]*vc + M[0][2]*sc
+			+ U[0][0]*ur + U[0][1]*vr + U[0][2]*sr
+			+ L[0][0]*ul + L[0][1]*vl + L[0][2]*sl
+			+ dt*F[0] + uc;
+
+	K[1] =    M[1][0]*uc + M[1][1]*vc + M[1][2]*sc
+			+ U[1][0]*ur + U[1][1]*vr + U[1][2]*sr
+			+ L[1][0]*ul + L[1][1]*vl + L[1][2]*sl
+			+ dt*F[1] + vc;
+	
+	K[2] =    M[2][0]*uc + M[2][1]*vc + M[2][2]*sc
+			+ U[2][0]*ur + U[2][1]*vr + U[2][2]*sr
+			+ L[2][0]*ul + L[2][1]*vl + L[2][2]*sl
+			+ dt*F[2] + sc;
+	
+	for(i=0;i<3;i++) {
+		for(j=0;j<3;j++) {
+			M[i][j] *= -1;
+			U[i][j] *= -1;
+			L[i][j] *= -1;
+			if (i==j) M[i][j] += 1;
+
 		}
 	}
 
-	K[0] =  (1+M[0][0])*uc + (1+M[0][1])*vc + (1+M[0][2])*sc
-			+ U[0][0]*ur + U[0][1]*vr + U[0][2]*sr
-			+ L[0][0]*ul + L[0][1]*vl + L[0][2]*sl
-			+ dt*F[0];
+	return;
+}
 
-	K[1] =  (1+M[1][0])*uc + (1+M[1][1])*vc + (1+M[1][2])*sc
-			+ U[1][0]*ur + U[1][1]*vr + U[1][2]*sr
-			+ L[1][0]*ul + L[1][1]*vl + L[1][2]*sl
-			+ dt*F[1];
+void get_bc_matrix(double complex u, double complex v, double complex s) {
+	int i,j;
 	
-	K[2] =  (1+M[2][0])*uc + (1+M[2][1])*vc + (1+M[2][2])*sc
-			+ U[2][0]*ur + U[2][1]*vr + U[2][2]*sr
-			+ L[2][0]*ul + L[2][1]*vl + L[2][2]*sl
-			+ dt*F[2];
-
-	for(i=0;i<9;i++) {
-		M[ind] = 1- M[ind];
-		U[ind] *= -1;
-		L[ind] *= -1;
+	for(i=0;i<3;i++) {
+		for(j=0;j<3;j++) {
+			U[i][j] = 0;
+			L[i][j] = 0;
+			if (i==j)	M[i][j] = 1;
+			else M[i][j] = 0;	
+		}
 	}
+	K[0] = u;
+	K[1] = v;
+	K[2] = s;
 
+	return;
+}
 void solver_init(void) {
 	
-	HG = (double complex *)malloc(sizeof(double complex)*3*4);
-	UK = (double complex *)malloc(sizeof(double complex)*3*4);
+	cn_mats = (CNmats *)malloc(sizeof(CNmats)*NTOT);
 	
-	H = (double complex *)malloc(sizeof(double complex)*3*3*NR);
-	G = (double complex *)malloc(sizeof(double complex)*3*NR);
 	
 	return;
 }
 
 void solver_free(void) {
 	
-	free(HG); free(UK);
-	free(H); free(G);
+	free(cn_mats);
+
 	return;
 }

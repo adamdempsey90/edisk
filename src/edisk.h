@@ -1,4 +1,4 @@
-//#include "defines.h"
+#include "defines.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <float.h>
@@ -12,20 +12,11 @@
 
 // Fourth Order Finite Difference Coefficients
 #define NG 1
-static double d1c[4] = {1./12,-2./3,2./3,-1./12};
-static double d2c[5] = {-1./12,4./3,-5./2,4./3,-1./12};
-
-//#define OUTRHS
-#define WAVEKILLBC
-//#define OUTRHS
-//#define KILLIN
-//#define KILLOUT
-//#define ZEROBC
-#define OPENMP
+//static double d1c[4] = {1./12,-2./3,2./3,-1./12};
+//static double d2c[5] = {-1./12,4./3,-5./2,4./3,-1./12};
 
 
-#define INDIRECT
-//#define COMPANION
+
 
 typedef struct Mode {
 
@@ -87,7 +78,6 @@ typedef struct Star {
 typedef void (*rhsfunc)(double , double complex *, double complex *, Mode *);
 
 
-void algo(double t, double complex *y, double complex *f, Mode *fld);
 void init_fld(Mode *fld);
 void init_output(char *dir);
 void output_params(void);
@@ -99,14 +89,11 @@ void f_2_fld(Mode *fld, double complex *q);
 void fld_2_f(Mode *fld, double complex *q);
 void alloc_fld(Mode *fld);
 void free_fld(Mode *fld);
-void init_rk45(void);
-void free_rk45(void);
-int rk45_step_apply(rhsfunc func, Mode *fld,double *t, double *h);
 void output_disk(double *r);
 void output_rhs(Mode *fld);
 void set_bc(Mode *fld);
 void wavekillbc(Mode *fld,double dt);
-void init_star(Mode *fld);
+
 
 void matmat(double complex *A, double complex *B, double complex *C, 
 					double complex alpha, double complex beta);
@@ -114,6 +101,27 @@ void matmat(double complex *A, double complex *B, double complex *C,
 void matvec(double complex *A, double complex *B, double complex *C, 
 					double complex alpha, double complex beta);
 void matsolve(double complex *A, double complex *B);
+
+
+#ifdef IMPLICIT
+int cranknicholson_step(double *t, double *dt, Mode *fld);
+void solver_init(void);
+void solver_free(void);
+#else
+
+void init_rk45(void);
+void free_rk45(void);
+int rk45_step_apply(rhsfunc func, Mode *fld,double *t, double *h);
+void algo(double t, double complex *y, double complex *f, Mode *fld);
+
+#endif
+
+
+
+#ifdef INDIRECT
+void init_star(Mode *fld);
+#endif
+
 
 int NR, istart, iend, NTOT;
 int outnum;
