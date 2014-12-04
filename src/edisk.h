@@ -1,3 +1,7 @@
+#ifndef HEADER_H
+#define HEADER_H
+
+
 #include "defines.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,7 +10,10 @@
 #include <string.h>
 #include <complex.h>
 #include <sys/stat.h>
+
+#ifdef OPENMP
 #include <omp.h>
+#endif
 
 #define MPI_Printf	printf
 
@@ -107,10 +114,13 @@ void matvec(double complex *A, double complex *B, double complex *C,
 void matsolve(double complex *A, double complex *B);
 
 
-#ifdef IMPLICIT
-int cranknicholson_step(double *t, double *dt, Mode *fld);
-void solver_init(void);
-void solver_free(void);
+#if defined(IMPLICIT) || defined(SPLIT)
+
+int algo_driver(double *h, double *t,Mode *fld);
+void cranknicholson_step(double dt, double t, Mode *fld);
+void cn_solver_init(void);
+void cn_solver_free(void);
+
 #else
 
 void init_rk45(void);
@@ -120,7 +130,11 @@ void algo(double t, double complex *y, double complex *f, Mode *fld);
 
 #endif
 
-
+#ifdef SPLIT
+void rktvd_step( double h, double t,Mode *fld);
+void init_rktvd(void);
+void free_rktvd(void);
+#endif
 
 #if defined(INDIRECT) || defined(COMPANION)
 void init_star(Mode *fld);
@@ -135,3 +149,5 @@ double complex	u_in_bc,u_out_bc,v_in_bc,v_out_bc,
 Bmode *bfld;
 Parameters *Params;
 Star *cstar;
+
+#endif

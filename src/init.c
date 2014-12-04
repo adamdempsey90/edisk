@@ -77,7 +77,7 @@ void user_ic(Mode *fld) {
 		r = pow(10,lr);
 //		E0 = e0*cexp(I*w); //* cexp(I*drw*lr);
 		
-		E0 = cos( .5*M_PI*(pow(10,fld->r[iend-1]) - r)/(pow(10,fld->r[iend-1])-pow(10,fld->r[istart])));
+		E0 = .2 * cos( .5*M_PI*(pow(10,fld->r[iend-1]) - r)/(pow(10,fld->r[iend-1])-pow(10,fld->r[istart])));
 		
 //		E0 = e0 * cexp(I*w) * exp(-(lr-r0)*(lr-r0)/(sigma*sigma));
 //		E0 = 0;

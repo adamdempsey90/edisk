@@ -9,7 +9,6 @@ int check_termination(void);
 int main(int argc, char *argv[]) {
 	int i;
 	char inputdir[100];
-	double h;
 	clock_t tic, toc;
 	tic = clock();
 	
@@ -40,22 +39,24 @@ int main(int argc, char *argv[]) {
 	init_output(Params->outdir);
 
 
-#ifdef IMPLICIT
-	solver_init();
+#if defined(IMPLICIT) || defined(SPLIT)
+	cn_solver_init();
 #else	
 	init_rk45();
 #endif
+
+#ifdef SPLIT
+	init_rktvd();
+#endif
+
 
 	output_disk(fld->r);
 	output(fld);
 	
 
 
-#ifdef IMPLICIT
-	h = (Params->cfl) * (Params->rcmax) * (Params->dr) / (Params->cmax);
-#else
-	double h = .1;
-#endif
+	double h = (Params->cfl) * (Params->rcmax) * (Params->dr) / (Params->cmax);
+
 
   	double 	t=Params->t0;
   	double dt;
@@ -72,8 +73,8 @@ int main(int argc, char *argv[]) {
 
 		
 		 
-#ifdef IMPLICIT		
-		int status = cranknicholson_step(&t, &h, fld);
+#if	defined(IMPLICIT) || defined(SPLIT)		
+		int status = algo_driver(&h, &t, fld);
 #else
 		int status = rk45_step_apply(&algo,fld,&t,&h);
 #endif		
@@ -110,11 +111,16 @@ int main(int argc, char *argv[]) {
 		}
     }
 
-#ifdef IMPLICIT
-	solver_free();
+#if defined(IMPLICIT) || defined(SPLIT)
+	cn_solver_free();
 #else	
 	free_rk45();
 #endif
+
+#ifdef SPLIT
+	free_rktvd();
+#endif
+
    	free_fld(fld);
     toc = clock(); 
     print_time( (double)(toc - tic) / CLOCKS_PER_SEC );

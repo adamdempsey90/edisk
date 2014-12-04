@@ -14,39 +14,25 @@ typedef struct CNmats {
 } CNmats;
 
 
-void solver(double dt, Mode *fld);
-void get_matrices(double dt, double r, double m, double nu, double c, double omk, 
+void get_matrices(int indx, double dt, double r, double m, double nu, double c, double omk, 
 							double dlomk, double complex ul, double complex uc, 
 							double complex ur, double complex vl, double complex vc,
 							double complex vr, double complex sl, double complex sc, 
 							double complex sr);
 							
-void solver_init(void);
-void solver_free(void);
+void cn_solver_init(void);
+void cn_solver_free(void);
 
 void get_bc_matrix(double complex u, double complex v, double complex s);
 
 
 CNmats *cn_mats;
 							
-int cranknicholson_step(double *t, double *dt, Mode *fld) {
-		
-	set_bc(fld);
-	
-	solver(*dt,fld);
-	
-	*t += *dt;
-
-	return 1;
-}
-
-
-void solver(double dt, Mode *fld) {
+void cranknicholson_step(double dt, double t, Mode *fld) {
 	int i;
 	
-	int ir,ic,indx,indx4;
-	int Gpind, Hpind;
-	int Gind, Hind, Gnind;
+	int ir,ic;
+	
 
 /* Step 1. Forward Solve */	
 	for(i=0;i<NTOT;i++) {
@@ -54,7 +40,7 @@ void solver(double dt, Mode *fld) {
 	
 /* Step 1.1 Get the A,B,C, and K block matrices 	*/
 		if (i!=0 && i!=NTOT-1) {
-			get_matrices(dt,pow(10.,fld->r[i]), fld->m,Params->nu[i],
+			get_matrices(i-istart,dt,pow(10.,fld->r[i]), fld->m,Params->nu[i],
 							Params->c2[i],bfld->omk[i],bfld->dlomk[i],
 							fld->u[i-1],fld->u[i],fld->u[i+1],
 							fld->v[i-1],fld->v[i],fld->v[i+1],
@@ -65,20 +51,12 @@ void solver(double dt, Mode *fld) {
 			get_bc_matrix(fld->u[i],fld->v[i],fld->sig[i]);
 		
 		}
-//		printf("GOT MATS\n");
+		
 /* Step 1.2 Setup UK matrix and solve for HG matrix  */
 
-// 		printf("%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
-// 		creal(K[0]),cimag(K[0]),
-// 		creal(K[1]),cimag(K[1]),
-// 		creal(K[2]),cimag(K[2]));
-//		printf("MATVEC\n");
 		if (i!=0) matvec(&L[0][0],&(cn_mats[i-1].G[0]),&K[0],-1,1);
 
-// 		printf("%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
-// 		creal(K[0]),cimag(K[0]),
-// 		creal(K[1]),cimag(K[1]),
-// 		creal(K[2]),cimag(K[2]));
+
 
 		for(ir=0;ir<3;ir++) {
 			for(ic=0;ic<3;ic++) UK[ir][ic] = -U[ir][ic];
@@ -88,40 +66,9 @@ void solver(double dt, Mode *fld) {
 		
 		if (i != 0) matmat(&L[0][0],&(cn_mats[i-1].H[0][0]),&M[0][0],1,1);
 		
-// 		printf("\n\nUK\n\n");
-// 		printf("%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
-// 		creal(UK[0][3]),cimag(UK[0][3]),
-// 		creal(UK[1][3]),cimag(UK[1][3]),
-// 		creal(UK[2][3]),cimag(UK[2][3]));
-		
-		
-// 		printf("\n\n Solve \n\n");
-// 		for(ir=0;ir<3;ir++) {
-// 			for(ic=0;ic<3;ic++) {
-// 				printf("%lg + %lgi\t\t", creal(M[ir][ic]),cimag(M[ir][ic]));
-// 			}
-// 			if(ir==1) {
-// 				printf("=\t\t");
-// 			}
-// 			else {
-// 				printf(" \t\t");
-// 			}
-// 			for(ic=0;ic<4;ic++) {
-// 				printf("%lg + %lgi\t\t", creal(UK[ir][ic]),cimag(UK[ir][ic]));
-// 			}
-// 			printf("\n");
-// 		}
 		
 		matsolve(&M[0][0],&UK[0][0]);		
-//		printf("MATSOLVE\n\n");
-		
-// 		for(ir=0;ir<3;ir++) {
-// 			for(ic=0;ic<4;ic++) {
-// 				printf("%lg + %lgi\t\t", creal(UK[ir][ic]),cimag(UK[ir][ic]));
-// 			}
-// 			printf("\n");
-// 		}
-		
+
 /* Step 1.3 Store H and G matrices */
 		
 		for(ir=0;ir<3;ir++) {
@@ -134,18 +81,11 @@ void solver(double dt, Mode *fld) {
 	}
 /* Step 2. Backward Subsitution */
 
-// 	fld->u[NTOT-1] = G[ (iend-1-istart)*3 + 0];
-// 	fld->v[iend-1] = G[ (iend-1-istart)*3 + 1];
-// 	fld->sig[iend-1] = G[ (iend-1-istart)*3 + 2];
-
 	cn_mats[NTOT-1].G[0] = fld->u[NTOT-1];
 	cn_mats[NTOT-1].G[1] = fld->v[NTOT-1];
 	cn_mats[NTOT-1].G[2] = fld->sig[NTOT-1];
 	
-// 	printf("%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
-// 		creal(cn_mats[NTOT-1].G[0]),cimag(cn_mats[NTOT-1].G[0]),
-// 		creal(cn_mats[NTOT-1].G[1]),cimag(cn_mats[NTOT-1].G[1]),
-// 		creal(cn_mats[NTOT-1].G[2]),cimag(cn_mats[NTOT-1].G[2]));
+
 		
 	for(i=NTOT-2;i>0;i--) {
 	
@@ -167,7 +107,7 @@ void solver(double dt, Mode *fld) {
 
 
 
-void get_matrices(double dt, double r, double m, double nu,
+void get_matrices(int indx, double dt, double r, double m, double nu,
 						    double c, double omk, double dlomk, 
 							double complex ul,double complex uc, double complex ur, 
 							double complex vl, double complex vc, double complex vr, 
@@ -226,7 +166,7 @@ void get_matrices(double dt, double r, double m, double nu,
 
 
 /* D matrix, inviscid */	
-
+#ifdef IMPLICIT
 	B[0][0] = 0;
 	B[0][1] = 0;
 	B[0][2] = -c/r;
@@ -252,7 +192,17 @@ void get_matrices(double dt, double r, double m, double nu,
 	B[2][0] += 0;
 	B[2][1] += 0;
 	B[2][2] += 0;
-
+#else
+	B[0][0] = 0;
+	B[0][1] = 0;
+	B[0][2] = 0;
+	B[1][0] = 0;
+	B[1][1] = 0;
+	B[1][2] = 0;
+	B[2][0] = 0;
+	B[2][1] = 0;
+	B[2][2] = 0;
+#endif	
 	
 /* D2 matrix, viscous */	
 
@@ -275,8 +225,8 @@ void get_matrices(double dt, double r, double m, double nu,
 	F[2] = 0;
 	
 #ifdef COMPANION 
-	F[0] += cstar->gr[i];
-	F[1] += cstar->gp[i];
+	F[0] += cstar->gr[indx];
+	F[1] += cstar->gp[indx];
 #endif
 	
 
@@ -335,7 +285,7 @@ void get_bc_matrix(double complex u, double complex v, double complex s) {
 
 	return;
 }
-void solver_init(void) {
+void cn_solver_init(void) {
 	
 	cn_mats = (CNmats *)malloc(sizeof(CNmats)*NTOT);
 	
@@ -343,7 +293,7 @@ void solver_init(void) {
 	return;
 }
 
-void solver_free(void) {
+void cn_solver_free(void) {
 	
 	free(cn_mats);
 
