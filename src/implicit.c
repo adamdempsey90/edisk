@@ -191,8 +191,8 @@ void get_matrices(double dt, double r, double m, double nu,
 	
 	double gam = Params->indsig + Params->indnu ;
 	
-#ifdef INDIRECT 
-	omf = Params->oms;
+#ifdef COMPANION
+	omf = cstar->oms;
 #else
 	omf = 0;
 #endif
@@ -273,6 +273,11 @@ void get_matrices(double dt, double r, double m, double nu,
 	F[0] = 0;
 	F[1] = 0;
 	F[2] = 0;
+	
+#ifdef COMPANION 
+	F[0] += cstar->gr[i];
+	F[1] += cstar->gp[i];
+#endif
 	
 
 /* Construct Crank-Nicholson matrices */

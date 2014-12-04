@@ -85,6 +85,7 @@ void output_params(void) {
 		\tm = %lg\n \
 		\trmin = %lg\n \
 		\trmax = %lg\n \
+		\tcfl = %lg\n \
 		\th0 = %lg\n \
 		\tflare index = %lg\n \
 		\talpha = %lg\n \
@@ -107,8 +108,9 @@ void output_params(void) {
 		\toutputdir = %s\n",
 		NR,
 		Params->m,
-		Params->rmin,
-		Params->rmax,
+		pow(10,Params->rmin),
+		pow(10,Params->rmax),
+		Params->cfl,
 		Params->h,
 		Params->indfl,
 		Params->alpha,

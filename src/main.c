@@ -9,6 +9,7 @@ int check_termination(void);
 int main(int argc, char *argv[]) {
 	int i;
 	char inputdir[100];
+	double h;
 	clock_t tic, toc;
 	tic = clock();
 	
@@ -48,7 +49,14 @@ int main(int argc, char *argv[]) {
 	output_disk(fld->r);
 	output(fld);
 	
-  	double	h = 100*.8*(Params->dr) / (bfld->omk[0]);
+
+
+#ifdef IMPLICIT
+	h = (Params->cfl) * (Params->rcmax) * (Params->dr) / (Params->cmax);
+#else
+	double h = .1;
+#endif
+
   	double 	t=Params->t0;
   	double dt;
   	i=1;
@@ -78,7 +86,7 @@ int main(int argc, char *argv[]) {
 		avgdt += dt;
 		MPI_Printf ("\t step #%d, step size = %.5e, at t=%.5e \n", numstep,dt, t);
    
-#ifdef WAVEKILLBC
+#if defined(WAVEKILLBC) || defined(KILLIN) || defined(KILLOUT)
 		wavekillbc(fld,dt);
 #endif
 	 

@@ -37,6 +37,7 @@ typedef struct Parameters {
 	double  m,
 			rmin,
 			rmax,
+			cfl,
 			h,
 			indfl,
 			alpha,
@@ -54,7 +55,10 @@ typedef struct Parameters {
 			t0,
 			tau,
 			endt,
-			tol;
+			tol,
+			cmax,
+			rcmax;
+			
 	double dr;
 	int numf;
 	char outdir[100];
@@ -65,7 +69,7 @@ typedef struct Parameters {
 
 
 typedef struct Star {
-	double ms;
+	double ms,oms;
 	double r,phi;
 	double complex *gr, *gp;
 
@@ -118,7 +122,7 @@ void algo(double t, double complex *y, double complex *f, Mode *fld);
 
 
 
-#ifdef INDIRECT
+#if defined(INDIRECT) || defined(COMPANION)
 void init_star(Mode *fld);
 #endif
 

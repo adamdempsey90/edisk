@@ -6,6 +6,7 @@ void read_inputs(char *inputdir) {
 	double  m,
 			rmin,
 			rmax,
+			cfl,
 			h,
 			indfl,
 			alpha,
@@ -36,6 +37,7 @@ void read_inputs(char *inputdir) {
 	fscanf(f,"m = %lg \n",&m);
 	fscanf(f,"rmin = %lg \n",&rmin);
 	fscanf(f,"rmax = %lg \n",&rmax);
+	fscanf(f,"cfl = %lg \n",&cfl);
 	fscanf(f,"h0 =  %lg \n",&h);
 	fscanf(f,"flare index = %lg \n", &indfl);
 	fscanf(f,"alpha =  %lg \n",&alpha);
@@ -61,6 +63,7 @@ void read_inputs(char *inputdir) {
 	Params->m = m;
 	Params->rmin = rmin;
 	Params->rmax = rmax;
+	Params->cfl = cfl;
 	Params->h = h;
 	Params->indfl = indfl;
 	Params->alpha = alpha;
@@ -100,6 +103,7 @@ void read_inputs(char *inputdir) {
 		\tm = %lg\n \
 		\trmin = %lg\n \
 		\trmax = %lg\n \
+		\tcfl = %lg\n \
 		\th0 = %lg\n \
 		\tflare index = %lg\n \
 		\talpha = %lg\n \
@@ -122,8 +126,9 @@ void read_inputs(char *inputdir) {
 		\toutputdir = %s\n",
 		NR,
 		Params->m,
-		Params->rmin,
-		Params->rmax,
+		pow(10,Params->rmin),
+		pow(10,Params->rmax),
+		Params->cfl,
 		Params->h,
 		Params->indfl,
 		Params->alpha,

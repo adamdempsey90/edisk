@@ -14,9 +14,10 @@ void init_star(Mode *fld) {
 	double grfac;
 	double complex gpfac;
 	
-	cstar->ms = .05;
+	cstar->ms = .1;
 	cstar->r = 15.;
 	cstar->phi = 0;
+	cstar->oms = pow(cstar->r,-1.5);
 	
 	grfac = -(cstar->ms)/(2*(cstar->r)*(cstar->r));
 	gpfac = (I*(fld->m)*(cstar->ms)/(2*(cstar->r)));

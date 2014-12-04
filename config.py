@@ -25,6 +25,8 @@ else:
 if 'INDIRECT' in defs:
 	algfile += ' star.c'
 	
+if 'COMPANION' in defs:
+	algfile += ' companion.c'	
 with open("Makefile.in","r") as f:
 	with open("Makefile","w") as g:
 		for line in f.readlines():

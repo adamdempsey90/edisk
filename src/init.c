@@ -1,6 +1,7 @@
 #include "edisk.h"
 
 void user_ic(Mode *fld);
+void calc_cmax(Mode *fld);
 void init_fld(Mode *fld) {
 	int i;
 	double dr = Params->dr;
@@ -48,10 +49,11 @@ void init_fld(Mode *fld) {
 	}
 	Params->indnu = 2 *(Params->indfl) + Params->q + 2;
 
-
+	calc_cmax(fld);
+	
 	user_ic(fld);
 
-#ifdef INDIRECT	
+#if defined(INDIRECT) || defined(COMPANION)	
 	init_star(fld);
 #endif
 	
@@ -75,9 +77,9 @@ void user_ic(Mode *fld) {
 		r = pow(10,lr);
 //		E0 = e0*cexp(I*w); //* cexp(I*drw*lr);
 		
-//		E0 = cos( .5*M_PI*(exp(fld->r[iend-1]) - r)/(exp(fld->r[iend-1])-exp(fld->r[istart])));
+		E0 = cos( .5*M_PI*(pow(10,fld->r[iend-1]) - r)/(pow(10,fld->r[iend-1])-pow(10,fld->r[istart])));
 		
-		E0 = e0 * cexp(I*w) * exp(-(lr-r0)*(lr-r0)/(sigma*sigma));
+//		E0 = e0 * cexp(I*w) * exp(-(lr-r0)*(lr-r0)/(sigma*sigma));
 //		E0 = 0;
 		fld->u[i] += I*(bfld->v[i])*E0;
 		fld->v[i] += .5*(bfld->v[i])*E0;	
@@ -108,5 +110,19 @@ void user_ic(Mode *fld) {
 		fld->sig[i+iend] = s_out_bc;
 	}
 	
+	return;
+}
+
+void calc_cmax(Mode *fld) {
+	int i;
+
+	Params->cmax=0;
+	
+	for(i=istart;i<iend;i++) {
+		if (sqrt(Params->c2[i]) > Params->cmax) {
+			Params->cmax = sqrt(Params->c2[i]);
+			Params->rcmax = pow(10,fld->r[i]);
+		}
+	}
 	return;
 }

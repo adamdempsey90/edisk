@@ -2,11 +2,12 @@
 # Disk Parameters	#
 Nr = 512
 m = 1.0
-rmin = -.5
-rmax = .2
-h0 = .05
-flare index = 0.0
-alpha = 0.1
+rmin = -.9
+rmax = .88
+cfl = .8
+h0 = .02
+flare index = 0.125
+alpha = 0.0
 sigma0 = .01
 sigma index = -.75
 rot index =  -1.5
@@ -19,7 +20,7 @@ Ms = 1.0
 # Time Parameters	#
 t0 = 0
 tau = 0
-endt = 500
+endt = 1000
 numf = 100
 tol = 1e-8
 outputdir = outputs/

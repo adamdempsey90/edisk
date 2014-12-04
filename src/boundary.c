@@ -19,13 +19,23 @@ void set_bc(Mode *fld) {
 		fld->sig[i] = fld->sig[istart];
 		fld->u[i+iend] = fld->u[iend-1];
 		fld->v[i+iend] = fld->v[iend-1];
-		fld->sig[i+iend] = fld->sig[iend-1];	
+		fld->sig[i+iend] = fld->sig[iend-1];
+		
+			
 // 		fld->u[i] = u_in_bc;
 // 		fld->v[i] = v_in_bc;
 // 		fld->sig[i] = s_in_bc;
 // 		fld->u[i+iend] = u_out_bc;
 // 		fld->v[i+iend] = v_out_bc;
-// 		fld->sig[i+iend] = s_out_bc;	
+// 		fld->sig[i+iend] = s_out_bc;
+
+// 		fld->u[i] = 0;
+// 		fld->v[i] = 0;
+// 		fld->sig[i] = 0;
+// 		fld->u[i+iend] = fld->u[iend-1];
+// 		fld->v[i+iend] = fld->v[iend-1];
+// 		fld->sig[i+iend] = fld->sig[iend-1];
+			
 
 #endif
 	}
@@ -53,7 +63,7 @@ void wavekillbc(Mode *fld,double dt)
 		x = fld->r[i];
 		R=0;
 	
-//#ifdef KILLOUT
+#ifdef KILLOUT
 		if (x > x_out) {
 /* Outer Boundary */
 			R = (x-x_out)/(fld->r[iend-1] - x_out);
@@ -62,8 +72,8 @@ void wavekillbc(Mode *fld,double dt)
 			sbc = s_out_bc;
 			tau = tauout;
 		}
-//#endif
-//#ifdef KILLIN
+#endif
+#ifdef KILLIN
 		if (x < x_in)  {
 			R = (x_in - x)/(x_in - fld->r[istart]);
 			ubc = u_in_bc;
@@ -71,7 +81,7 @@ void wavekillbc(Mode *fld,double dt)
 			sbc = s_in_bc;
 			tau = tauin;
 		}
-//#endif
+#endif
 		R *= R;
 		
 
@@ -79,8 +89,8 @@ void wavekillbc(Mode *fld,double dt)
 			tau /= R; 
 			dtdtau = dt/tau;
 			
-//			fld->u[i] = (fld->u[i] + dtdtau * ubc)/(1+dtdtau );
-//			fld->v[i] = (fld->v[i]+ dtdtau * vbc)/(1+dtdtau );
+			fld->u[i] = (fld->u[i] + dtdtau * ubc)/(1+dtdtau );
+			fld->v[i] = (fld->v[i]+ dtdtau * vbc)/(1+dtdtau );
 			fld->sig[i] = (fld->sig[i] + dtdtau * sbc)/(1+dtdtau);
 			
 			

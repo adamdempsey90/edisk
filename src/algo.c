@@ -38,8 +38,8 @@ void algogas(double t,Mode *fld) {
 	double dr,dr2,m, r,r2,omk,omf;
 	double c2,nu;
 
-#ifdef INDIRECT	
-	omf = Params->oms;
+#ifdef COMPANION 	
+	omf = cstar->oms;
 #else
 	omf = 0;
 #endif
