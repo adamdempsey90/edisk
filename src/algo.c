@@ -53,7 +53,7 @@ void algogas(double t,Mode *fld) {
 #endif	
 	for(i=istart;i<iend;i++) {
 		it = i-istart;
-		r = pow(10,fld->r[i]);
+		r = fld->r[i];
 		r2 = r*r;
 
 

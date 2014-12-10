@@ -1,5 +1,9 @@
 #include "edisk.h"
-
+#ifdef LOG10
+#define UNLOG(a) pow(10,a)
+#else
+#define UNLOG(a) exp(a)
+#endif
 #define STRLEN 100
 /* Option to write output in real space or complex space */
 
@@ -42,7 +46,7 @@ void output(Mode *fld) {
 #else
 	f = fopen(fname,"w");
 	if (f == NULL) printf("ERROR: Couldn't open output file\n");
-	fprintf(f,"#r\tRe(u)\tIm(u)\tRe(v)\tIm(v)\tRe(s)\tIm(s)\tvybar\tomk\tsigbar\n");
+	fprintf(f,"#logr\tr\tRe(u)\tIm(u)\tRe(v)\tIm(v)\tRe(s)\tIm(s)\tvybar\tomk\tsigbar\n");
 	for(i=0;i<NTOT;i++) {
 //		MPI_Printf("writing #%d\n",i);
 //		MPI_Printf("%lg\n", fld->r[i]);
@@ -53,8 +57,8 @@ void output(Mode *fld) {
 // 			creal(fld->sig[i]),cimag(fld->sig[i]),
 // 			bfld->v[i],bfld->omk[i],bfld->sig[i]);
 			
-		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
-			fld->r[i],
+		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
+			fld->lr[i],fld->r[i],
 			creal(fld->u[i]),cimag(fld->u[i]),
 			creal(fld->v[i]),cimag(fld->v[i]),
 			creal(fld->sig[i]),cimag(fld->sig[i]),
@@ -108,8 +112,8 @@ void output_params(void) {
 		\toutputdir = %s\n",
 		NR,
 		Params->m,
-		pow(10,Params->rmin),
-		pow(10,Params->rmax),
+		UNLOG(Params->rmin),
+		UNLOG(Params->rmax),
 		Params->cfl,
 		Params->h,
 		Params->indfl,
@@ -134,16 +138,16 @@ void output_params(void) {
 	return;
 
 }
-void output_disk(double *r) {
+void output_disk(double *lr,double *r) {
 	int i;
 	char fname[STRLEN];
 	strcpy(fname,Params->outdir);
 	strcat(fname,"disk.dat");
 	FILE *f = fopen(fname,"w");
-	fprintf(f,"# r \t h/r \t c^2 \t nu\n");
+	fprintf(f,"# logr \t r \t h/r \t c^2 \t nu\n");
 	for(i=0;i<NTOT;i++) {
-		fprintf(f,"%lg\t%lg\t%lg\t%lg\n",
-		r[i],
+		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\n",
+		lr[i],r[i],
 		Params->hor[i],
 		Params->c2[i],
 		Params->nu[i]);
@@ -166,8 +170,8 @@ void output_rhs(Mode *fld) {
 	strcat(fname,name); 
 	f = fopen(fname,"w");
 	for(i=0;i<NR;i++) {
-		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
-		fld->r[i+istart],
+		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
+		fld->lr[i+istart],fld->r[i+istart],
 		creal(fld->dtu[i]),cimag(fld->dtu[i]),
 		creal(fld->dtv[i]),cimag(fld->dtv[i]),
 		creal(fld->dts[i]),cimag(fld->dts[i]));

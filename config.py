@@ -3,7 +3,7 @@
 from sys import argv
 
 
-def read_params():
+def create_defines_file():
 	with open('inputs/params.opt','r') as f:
 		temp = [x.split('+') for x in f.readlines()]
 		defs=[]
@@ -61,7 +61,7 @@ def create_makefile(algfile):
 	return 0
 	
 	
-defs = read_params()	
+defs = create_defines_file()	
 algfile = generate_extra_files(defs)
 create_makefile(algfile)
 

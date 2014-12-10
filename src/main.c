@@ -50,7 +50,7 @@ int main(int argc, char *argv[]) {
 #endif
 
 
-	output_disk(fld->r);
+	output_disk(fld->lr,fld->r);
 	output(fld);
 	
 

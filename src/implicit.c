@@ -40,7 +40,7 @@ void cranknicholson_step(double dt, double t, Mode *fld) {
 	
 /* Step 1.1 Get the A,B,C, and K block matrices 	*/
 		if (i!=0 && i!=NTOT-1) {
-			get_matrices(i-istart,dt,pow(10.,fld->r[i]), fld->m,Params->nu[i],
+			get_matrices(i-istart,dt,fld->r[i], fld->m,Params->nu[i],
 							Params->c2[i],bfld->omk[i],bfld->dlomk[i],
 							fld->u[i-1],fld->u[i],fld->u[i+1],
 							fld->v[i-1],fld->v[i],fld->v[i+1],

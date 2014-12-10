@@ -19,9 +19,13 @@ void init_fld(Mode *fld) {
 #endif
 	for(i=0;i<NTOT;i++) {
 		lr = (Params->rmin) + (.5 + i -NG ) * dr;
-		fld->r[i] = lr;
-		r = pow(10,lr);
-	
+		fld->lr[i] = lr;
+#ifdef LOG10
+		fld->r[i] = pow(10,lr);
+#else
+		fld->r[i] = exp(lr);
+#endif
+		r = fld->r[i];
 		Params->hor[i] = (Params->h)*pow(r,Params->indfl);
 
 		
@@ -73,11 +77,11 @@ void user_ic(Mode *fld) {
 	double sigma = .05;
 	double r0 = -.2;
 	for(i=istart;i<iend;i++) {
-		lr = (fld->r[i]);
-		r = pow(10,lr);
+		lr = fld->lr[i];
+		r = fld->r[i];
 //		E0 = e0*cexp(I*w); //* cexp(I*drw*lr);
 		
-		E0 = .2 * cos( .5*M_PI*(pow(10,fld->r[iend-1]) - r)/(pow(10,fld->r[iend-1])-pow(10,fld->r[istart])));
+		E0 = 0 * cos( .5*M_PI*(fld->r[iend-1] - r)/(fld->r[iend-1]-fld->r[istart]));
 		
 //		E0 = e0 * cexp(I*w) * exp(-(lr-r0)*(lr-r0)/(sigma*sigma));
 //		E0 = 0;
@@ -113,6 +117,7 @@ void user_ic(Mode *fld) {
 	return;
 }
 
+
 void calc_cmax(Mode *fld) {
 	int i;
 
@@ -121,7 +126,7 @@ void calc_cmax(Mode *fld) {
 	for(i=istart;i<iend;i++) {
 		if (sqrt(Params->c2[i]) > Params->cmax) {
 			Params->cmax = sqrt(Params->c2[i]);
-			Params->rcmax = pow(10,fld->r[i]);
+			Params->rcmax = fld->r[i];
 		}
 	}
 	return;

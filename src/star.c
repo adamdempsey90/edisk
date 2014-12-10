@@ -12,8 +12,8 @@ void init_star(Mode *fld) {
 	double grval,gpval;
 	double indsig = Params->indsig;
 	double sig0  = Params->sig0;
-	double ri = pow(10,fld->r[istart]);
-	double ro = pow(10,fld->r[iend-1]);
+	double ri =fld->r[istart];
+	double ro = fld->r[iend-1];
 	
 	if (Params->indsig != -3) {
 		cstar->r = 2*M_PI*sig0 * (pow(ro,indsig+3)-pow(ri,indsig+3)) / (indsig+3); 
@@ -27,7 +27,7 @@ void init_star(Mode *fld) {
 	MPI_Printf("\n\nStar at radius: %lg, with rotation rate: %lg\n",cstar->r,Params->oms);
 	for(i=istart;i<iend;i++) {
 		it = i - istart;
-		r = pow(10,fld->r[i]);
+		r = fld->r[i];
 		rsoft = sqrt(Params->rs*Params->rs + r*r);
 		
 		starint(cstar->r/rsoft,fld->m,2000,&grval,&gpval);

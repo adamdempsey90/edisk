@@ -2,21 +2,21 @@ class Field():
 	def __init__(self,t,outdir='',loadrhs=False,rhsnum=0,NG=1,etol=1e-8):	
 		disk = loadtxt(outdir+'disk.dat')
 		self.r = disk[:,0]
-		self.nlr = 10**self.r
+		self.nlr = disk[:,1]
 		self.nr = len(self.r)
 		self.dr = diff(self.r)[0]
 		self.width = self.nr*self.dr
-		self.hor = disk[:,1]
-		self.c2 = disk[:,2]
-		self.nu = disk[:,3]
+		self.hor = disk[:,2]
+		self.c2 = disk[:,3]
+		self.nu = disk[:,4]
 		dat = loadtxt(outdir + 'output_'+str(t)+'.dat')
-		self.u = dat[:,1]+1j*dat[:,2]
-		self.v = dat[:,3] + 1j*dat[:,4]
-		self.sig = dat[:,5] + 1j*dat[:,6]
-		self.vyb = dat[:,7]
-		self.omk = dat[:,8]
+		self.u = dat[:,2]+1j*dat[:,3]
+		self.v = dat[:,4] + 1j*dat[:,5]
+		self.sig = dat[:,6] + 1j*dat[:,7]
+		self.vyb = dat[:,8]
+		self.omk = dat[:,9]
 		self.omk0 = pow(self.nlr,-1.5)
-		self.dbar = dat[:,9]
+		self.dbar = dat[:,10]
 		self.E = (2*self.v - 1j*self.u) / (2*self.vyb)
 		
 
@@ -36,19 +36,24 @@ class Field():
 		self.NG = NG
 		if loadrhs:
 			rhs = loadtxt('rhs_'+str(rhsnum)+'.dat')
-			self.dtu = rhs[:,1]+rhs[:,2]*1j
-			self.dtv = rhs[:,3] + rhs[:,4]*1j
-			self.dts = rhs[:,5] + rhs[:,6]*1j
+			self.dtu = rhs[:,2]+rhs[:,3]*1j
+			self.dtv = rhs[:,4] + rhs[:,5]*1j
+			self.dts = rhs[:,6] + rhs[:,7]*1j
 		else:
 			self.dtu = 0
 			self.dtv = 0
 			self.dts = 0
 	def plot(self,q,linestyle='-',logr=True):
+	
+		if q not in ['u','v','sig','E','nu','c2','hor','omk','dbar','vybar','dtu','dtv','dts']:
+			print 'Not Valid Variable Name'
+			return
+			
 		if logr:
 			r = self.r
 			xname = '$\ln r$'
 		else:
-			r = 10**self.r
+			r = self.nlr
 			xname = '$r$'
 		if q=='u':
 			fig,(ax1,ax2)=subplots(2,sharex=True)
@@ -116,8 +121,8 @@ class Field():
 			ax2.set_ylabel('$e_y$')
 			ax3.plot(r,abs(self.E),linestyle)
 			ax3.set_ylabel('e')
-			ax4.plot(r,angle(self.E),linestyle)
-			ax4.set_ylabel('$\\omega$')
+			ax4.plot(r,angle(self.E)/pi,linestyle)
+			ax4.set_ylabel('$\\omega/\\pi$')
 			ax4.set_xlabel(xname)
 		
 		if q=='dtu':
@@ -145,6 +150,9 @@ class Field():
 			ax2.set_ylabel('Im(dts)')	
 			ax2.set_xlabel(xname)
 		show()
+		
+		
+		
 		
 	def draw_ellipse(self,num_ellipse,(xc,yc)=(0,0),Nph=200):
 		pgrid = linspace(0,2*pi,Nph)
@@ -190,6 +198,10 @@ class Field():
 		return
 		
 def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None,logr=True):
+	if q not in ['u','v','sig','E']:
+		print 'Not Valid Variable Name'
+		return
+		
 	if fld0==None:
 		fld0 = Field(0)
 		
@@ -288,25 +300,25 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None,logr=True):
 		ax1.set_ylabel('$e_x$')
 		ax2.set_ylabel('$e_y$')
 		ax3.set_ylabel('e')
-		ax4.set_ylabel('$\\omega$')
+		ax4.set_ylabel('$\\omega/\\pi$')
 		ax4.set_xlabel(xstr)	
 		
 		l1,= ax1.plot(r,real(fld0.E),linestyle)
 		l2,= ax2.plot(r,imag(fld0.E),linestyle)
 		l3,= ax3.plot(r,abs(fld0.E),linestyle)
-		l4,= ax4.plot(r,angle(fld0.E),linestyle)
+		l4,= ax4.plot(r,angle(fld0.E)/pi,linestyle)
 		
 		l1range = (real(dat).min(),real(dat).max())
 		l2range = (imag(dat).min(),imag(dat).max())
 		l3range = (abs(dat).min(),abs(dat).max())
-		l4range = (angle(dat).min(),angle(dat).max())
+		l4range = (-1,1)
 		fig.canvas.draw()
 		for i in range(len(t)):
 			ax1.set_title('Eccentricity, t='+str(t[i]*dt))
 			l1.set_ydata(real(dat[:,i]))
 			l2.set_ydata(imag(dat[:,i]))
 			l3.set_ydata(abs(dat[:,i]))
-			l4.set_ydata(angle(dat[:,i]))
+			l4.set_ydata(angle(dat[:,i])/pi)
 
 			ax1.set_ylim(l1range)
 			ax2.set_ylim(l2range)
@@ -320,7 +332,8 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None,logr=True):
 	
 
 def animate_ellipse(t,num_ellipse,(xc,yc)=(0,0),Nph=200):
-	
+		
+		
 	if fld0==None:
 		fld0 = Field(0)
 	
@@ -364,6 +377,49 @@ def animate_ellipse(t,num_ellipse,(xc,yc)=(0,0),Nph=200):
 			ax1.set_ylim(l1range)
 			ax2.set_ylim(l2range)
 			fig.canvas.draw()
+
+
+def animate_real(q,t,xlims=None,ylims=None,Nph=200):
+
+	if q not in ['dens','vx','vy','E']:
+		print 'Not Valid Variable Name'
+		return 
+
+	fld0=Field(t[0])
+	phi = linspace(-pi,pi,Nph)
+	dat = zeros((len(fld0.nlr),Nph,len(t)))	
+
+	x = zeros((len(fld0.nlr),Nph))
+	y = zeros((len(fld0.nlr),Nph))
+	
+	for p in range(Nph):
+		x[:,p] = fld0.nlr * cos(phi[p])
+		y[:,p] = fld0.nlr * sin(phi[p])
+	
+	for i,j in enumerate(t):
+		print 'Loading t = ' + str(i)
+		fld=Field(j)
+		for p in range(Nph):
+			if q=='vx':
+				dat[:,p,i] =  2*real(fld.u*exp(-1j*phi[p]))
+			if q=='vy':
+				dat[:,p,i] =   2*real(fld.v*exp(-1j*phi[p]))
+			if q=='dens':
+				dat[:,p,i] =  fld.dbar*(1 + 2*real(fld.sig*exp(-1j*phi[p])))/fld.dbar - 1
+			if q=='E':
+				dat[:,p,i] =  2*abs(real(fld.E*exp(-1j*phi[p])))
+	
+	fig=figure()
+	for i,j in enumerate(t[1:]):
+		fig.clear()
+		pcolormesh(x,y,dat[:,:,i])
+		colorbar()
+		title(q + ',    t = ' + str(j))
+		fig.canvas.draw()
+		
+	
+	
+	return dat,x,y,fld0
 
 
 class star():

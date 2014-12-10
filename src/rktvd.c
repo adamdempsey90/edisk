@@ -133,7 +133,7 @@ double complex rktvd_rhs_u(int iB, double r, double complex uL, double complex u
 		+ B[indx + 3*0 + 1] * (vR-vL) 
 		+ B[indx + 3*0 + 2] * (sR-sL);
 	
-	out /= (2 * pow(10,r) * (Params->dr));
+	out /= (2 * r * (Params->dr));
 	return out;
 							
 }
@@ -150,7 +150,7 @@ double complex rktvd_rhs_v(int iB, double r, double complex uL, double complex u
 		+ B[indx + 3*1 + 1] * (vR-vL) 
 		+ B[indx + 3*1 + 2] * (sR-sL);
 	
-	out /= (2 * pow(10,r) * (Params->dr));
+	out /= (2 *r * (Params->dr));
 		
 	return out;
 							
@@ -168,7 +168,7 @@ double complex rktvd_rhs_s(int iB, double r, double complex uL, double complex u
 		+ B[indx + 3*2 + 1] * (vR-vL) 
 		+ B[indx + 3*2 + 2] * (sR-sL);
 	
-	out /= (2 * pow(10,r) * (Params->dr));
+	out /= (2 * r * (Params->dr));
 		
 	return out;
 							
@@ -185,7 +185,7 @@ void coefficient_matrix(Mode *fld) {
 		omk = bfld->omk[i];
 		dlomk = bfld->dlomk[i];
 		nu = Params->nu[i];
-		r = pow(10,fld->r[i]);
+		r = fld->r[i];
 		m = fld->m;
 		c2 = Params->c2[i];
 		gam = Params->indnu + Params->indsig;

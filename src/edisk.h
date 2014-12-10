@@ -29,7 +29,7 @@ typedef struct Mode {
 
 	double complex *u,*v,*sig;
 	double m,dr;
-	double *r;
+	double *r, *lr;
 	double complex *dtu,*dtv,*dts;
 
 } Mode;
@@ -100,7 +100,7 @@ void f_2_fld(Mode *fld, double complex *q);
 void fld_2_f(Mode *fld, double complex *q);
 void alloc_fld(Mode *fld);
 void free_fld(Mode *fld);
-void output_disk(double *r);
+void output_disk(double *lr, double *r);
 void output_rhs(Mode *fld);
 void set_bc(Mode *fld);
 void wavekillbc(Mode *fld,double dt);

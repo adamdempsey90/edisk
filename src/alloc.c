@@ -26,6 +26,9 @@ void alloc_fld(Mode *fld) {
 	fld->r = (double *)malloc(sizeof(double)*NTOT);
 	if (fld->r == NULL) malloc_err("r");
 	
+	fld->lr = (double *)malloc(sizeof(double)*NTOT);
+	if (fld->lr == NULL) malloc_err("lr");
+	
 	bfld->u = (double *)malloc(sizeof(double)*NTOT);
 	if (bfld->u == NULL) malloc_err("vxbar");	
 
@@ -70,6 +73,7 @@ void free_fld(Mode *fld) {
 	free(fld->sig);
 	
 	free(fld->r);
+	free(fld->lr);
 	
 	free(fld);
 	

@@ -1,5 +1,12 @@
 #include "edisk.h" 
 
+#ifdef LOG10
+#define UNLOG(a) pow(10,a)
+#else
+#define UNLOG(a) exp(a)
+#endif
+
+
 void read_inputs(char *inputdir) {
 	FILE *f;
 	char garbage[100], outdir[100], ifname[100];
@@ -82,7 +89,7 @@ void read_inputs(char *inputdir) {
 	Params->dr  = (rmax - rmin) / NR;
 	Params->rs *= (Params->h);
 	if (indsig != -2) {
-		Params->Mdisk = 2*M_PI*sig0 * (pow(pow(10,rmax),indsig+2)-pow(pow(10,rmin),indsig+2))/(indsig+2);
+		Params->Mdisk = 2*M_PI*sig0 * (pow(UNLOG(rmax),indsig+2)-pow(UNLOG(rmin),indsig+2))/(indsig+2);
 	}
 	else {
 		Params->Mdisk = 2*M_PI*sig0 * (rmax-rmin);
@@ -126,8 +133,8 @@ void read_inputs(char *inputdir) {
 		\toutputdir = %s\n",
 		NR,
 		Params->m,
-		pow(10,Params->rmin),
-		pow(10,Params->rmax),
+		UNLOG(Params->rmin),
+		UNLOG(Params->rmax),
 		Params->cfl,
 		Params->h,
 		Params->indfl,
