@@ -81,8 +81,8 @@ void user_ic(Mode *fld) {
 		r = fld->r[i];
 //		E0 = e0*cexp(I*w); //* cexp(I*drw*lr);
 		
-		E0 = 0 * cos( .5*M_PI*(fld->r[iend-1] - r)/(fld->r[iend-1]-fld->r[istart]));
-		
+		E0 = .1 * cos( .5*M_PI*(fld->r[iend-1] - r)/(fld->r[iend-1]-fld->r[istart]));
+//		
 //		E0 = e0 * cexp(I*w) * exp(-(lr-r0)*(lr-r0)/(sigma*sigma));
 //		E0 = 0;
 		fld->u[i] += I*(bfld->v[i])*E0;

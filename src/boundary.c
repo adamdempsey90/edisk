@@ -114,17 +114,19 @@ void user_bc(Mode *fld) {
 */
 	int i;
 	
+//	fld->u[0] = -(fld->u[1]);
+//	fld->v[0] = -(fld->v[1]);
 	
 	
-	fld->u[iend] = I*(fld->m)*(fld->v[iend-1])*2*(fld->dr)+(fld->u[iend-1])*(1-2*(fld->dr));
+//	fld->u[iend] = I*(fld->m)*(fld->v[iend-1])*2*(fld->dr)+(fld->u[iend-1])*(1-2*(fld->dr));
 
-	fld->sig[iend] = - fld->sig[iend-1];
+//	fld->sig[iend] = - fld->sig[iend-1];
 
-	
-// 	fld->u[istart-1] = - (fld->u[istart]);
+//	fld->u[istart-1] = - (fld->u[istart]);
+// 	fld->v[istart-1] = - (fld->v[istart]);
  	
 // 	fld->v[istart-1] = - (fld->v[istart]);
- 	fld->sig[istart-1] = - (fld->sig[istart]);
+// 	fld->sig[istart-1] = - (fld->sig[istart]);
 	return;
 }
 

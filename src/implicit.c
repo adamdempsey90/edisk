@@ -229,7 +229,16 @@ void get_matrices(int indx, double dt, double r, double m, double nu,
 	F[1] += cstar->gp[indx];
 #endif
 	
-
+	
+	F[2] = 0;
+	for(i=0;i<3;i++) {
+		A[i][2] = 0;
+		B[i][2] = 0;
+		C[i][2] = 0;
+		A[2][i] = 0;
+		B[2][i] = 0;
+		C[2][i] = 0;
+	}
 /* Construct Crank-Nicholson matrices */
 
 	for(i=0;i<3;i++) {

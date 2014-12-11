@@ -1,10 +1,10 @@
 # Input Parameters #
 # Disk Parameters	#
-Nr = 512
+Nr = 200
 m = 1.0
 rmin = -2.0
 rmax = 2.01
-cfl = 1
+cfl = 10
 h0 = .02
 flare index = 0.125
 alpha = 0.0
@@ -20,7 +20,7 @@ Ms = 1.0
 # Time Parameters	#
 t0 = 0
 tau = 0
-endt = 1000
-numf = 200
+endt = 100000
+numf = 100
 tol = 1e-8
 outputdir = outputs/
