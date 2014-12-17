@@ -45,7 +45,7 @@ class Field():
 			self.dts = 0
 	def plot(self,q,linestyle='-',logr=True):
 	
-		if q not in ['u','v','sig','E','nu','c2','hor','omk','dbar','vybar','dtu','dtv','dts']:
+		if q not in ['u','v','sig','E','nu','c2','hor','omk','dbar','vybar','dtu','dtv','dts','e','w','ex','ey']:
 			print 'Not Valid Variable Name'
 			return
 			
@@ -125,6 +125,26 @@ class Field():
 			ax4.set_ylabel('$\\omega/\\pi$')
 			ax4.set_xlabel(xname)
 		
+		if q=='e':
+			fig,ax = subplots()
+			ax.set_title('$e$')
+			ax.plot(r,abs(self.E),linestyle)
+			ax.set_xlabel(xname)
+		if q=='w':
+			fig,ax = subplots()
+			ax.set_title('$e$')
+			ax.plot(r,angle(self.E),linestyle)
+			ax.set_xlabel(xname)
+		if q=='ex':
+			fig,ax = subplots()
+			ax.set_title('$e$')
+			ax.plot(r,real(self.E),linestyle)
+			ax.set_xlabel(xname)	
+		if q=='ey':
+			fig,ax = subplots()
+			ax.set_title('$e$')
+			ax.plot(r,imag(self.E),linestyle)
+			ax.set_xlabel(xname)	
 		if q=='dtu':
 			fig,(ax1,ax2)=subplots(2,sharex=True)
 			ax1.set_title('dtu')
@@ -149,6 +169,8 @@ class Field():
 			ax2.plot(r[self.NG:-self.NG],imag(self.dts),linestyle,label='$Im(dts)$')
 			ax2.set_ylabel('Im(dts)')	
 			ax2.set_xlabel(xname)
+		
+		
 		show()
 		
 		
@@ -198,7 +220,7 @@ class Field():
 		return
 		
 def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None,logr=True):
-	if q not in ['u','v','sig','E']:
+	if q not in ['u','v','sig','E','e','w','ex','ey']:
 		print 'Not Valid Variable Name'
 		return
 		
@@ -218,7 +240,14 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None,logr=True):
 				dat[:,i] = fld.sig
 			if q=='E':
 				dat[:,i] = fld.E
-		
+			if q=='e':
+				dat[:,i] = abs(fld.E)
+			if q=='w':
+				dat[:,i] = angle(fld.E)
+			if q=='ex':
+				dat[:,i] = real(fld.E)
+			if q=='ey':
+				dat[:,i] = imag(fld.E)
 	
 	if logr:
 		r = fld0.r
@@ -226,6 +255,20 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None,logr=True):
 	else:
 		r = fld0.nlr
 		xstr = 'r'
+	
+	if q in ['e','w','ex','ey']:
+		fig = figure()
+		ax = fig.add_subplot(111)
+		ax.set_title(q)
+		ax.set_xlabel(xstr)
+		l, = ax.plot(r,dat[:,0])
+		lrange = (dat.min(),dat.max())
+		for i in range(dat.shape[1]):
+			ax.set_title(q + ', t='+str(t[i]*dt))
+			l.set_ydata(dat[:,i])
+			ax.set_ylim(lrange)
+			fig.canvas.draw()
+	
 		
 	if q=='u':
 		fig = figure()
@@ -402,8 +445,10 @@ def animate_real(q,t,xlims=None,ylims=None,Nph=200):
 		for p in range(Nph):
 			if q=='vx':
 				dat[:,p,i] =  2*real(fld.u*exp(-1j*phi[p]))
-			if q=='vy':
+			if q=='vyp':
 				dat[:,p,i] =   2*real(fld.v*exp(-1j*phi[p]))
+			if q=='vy':
+				dat[:,p,i] =   2*real(fld.v*exp(-1j*phi[p])) + fld.vyb
 			if q=='dens':
 				dat[:,p,i] =  fld.dbar*(1 + 2*real(fld.sig*exp(-1j*phi[p])))/fld.dbar - 1
 			if q=='E':

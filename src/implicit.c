@@ -137,6 +137,14 @@ void get_matrices(int indx, double dt, double r, double m, double nu,
 	omf = 0;
 #endif
 	
+	
+	
+	
+
+	
+	
+	
+	
 /* Main Diagonal, inviscid */	
 	A[0][0] = I*m*omk;
 	A[0][1]= 2*(omf + omk);
@@ -164,6 +172,10 @@ void get_matrices(int indx, double dt, double r, double m, double nu,
 	A[2][1] += 0;
 	A[2][2] += 0;
 
+
+	
+// Look at just advection!	
+	
 
 /* D matrix, inviscid */	
 #ifdef IMPLICIT
@@ -204,6 +216,7 @@ void get_matrices(int indx, double dt, double r, double m, double nu,
 	B[2][2] = 0;
 #endif	
 	
+	
 /* D2 matrix, viscous */	
 
 	C[0][0] = 4*nu/3.;
@@ -229,16 +242,18 @@ void get_matrices(int indx, double dt, double r, double m, double nu,
 	F[1] += cstar->gp[indx];
 #endif
 	
-	
-	F[2] = 0;
-	for(i=0;i<3;i++) {
-		A[i][2] = 0;
-		B[i][2] = 0;
-		C[i][2] = 0;
-		A[2][i] = 0;
-		B[2][i] = 0;
-		C[2][i] = 0;
-	}
+
+
+// Don't evolve sigma	
+// 	F[2] = 0;
+// 	for(i=0;i<3;i++) {
+// 		A[i][2] = 0;
+// 		B[i][2] = 0;
+// 		C[i][2] = 0;
+// 		A[2][i] = 0;
+// 		B[2][i] = 0;
+// 		C[2][i] = 0;
+// 	}
 /* Construct Crank-Nicholson matrices */
 
 	for(i=0;i<3;i++) {

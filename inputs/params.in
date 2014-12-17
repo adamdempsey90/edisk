@@ -1,15 +1,15 @@
 # Input Parameters #
 # Disk Parameters	#
-Nr = 200
+Nr = 512
 m = 1.0
-rmin = -2.0
-rmax = 2.01
-cfl = 10
-h0 = .02
-flare index = 0.125
-alpha = 0.0
+rmin = -1.5
+rmax = 1.01
+cfl = 2
+h0 = .05
+flare index = .5
+alpha = 0.01
 sigma0 = .001
-sigma index = -.75
+sigma index = 0
 rot index =  -1.5
 # Initial Eccentricity  #
 initial e = .1
@@ -20,7 +20,7 @@ Ms = 1.0
 # Time Parameters	#
 t0 = 0
 tau = 0
-endt = 100000
-numf = 100
+endt = 40000
+numf = 200
 tol = 1e-8
 outputdir = outputs/

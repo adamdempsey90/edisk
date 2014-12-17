@@ -32,6 +32,8 @@ void init_fld(Mode *fld) {
 		bfld->sig[i] = (Params->sig0)*pow(r,Params->indsig);
 		
 		bfld->omk[i] = (Params->om0)*pow(r,Params->q);
+		bfld->dlomk[i] = (Params->q);
+		
 		
 		Params->c2[i] = (Params->hor[i])*
 							(Params->hor[i])*r*r*(bfld->omk[i])*(bfld->omk[i]);
@@ -41,8 +43,8 @@ void init_fld(Mode *fld) {
 		
 		bfld->omk[i] *= sqrt( 1 + (Params->hor[i])*(Params->hor[i])*(Params->indsig));
 		
-		bfld->dlomk[i] = (Params->q) 
-				+ (1-pow((Params->om0)*pow(r,Params->q)/(bfld->omk[i]),2))*(Params->indfl);
+ 		bfld->dlomk[i] += 
+ 				(1-pow((Params->om0)*pow(r,Params->q)/(bfld->omk[i]),2))*(Params->indfl);
 			
 		bfld->v[i] = r * (bfld->omk[i]);
 		bfld->u[i] = 0;
@@ -76,17 +78,23 @@ void user_ic(Mode *fld) {
 	double complex E0;
 	double sigma = .05;
 	double r0 = -.2;
+	double aspect = (fld->lr[iend] - fld->lr[0]);
 	for(i=istart;i<iend;i++) {
 		lr = fld->lr[i];
 		r = fld->r[i];
 //		E0 = e0*cexp(I*w); //* cexp(I*drw*lr);
 		
-		E0 = .1 * cos( .5*M_PI*(fld->r[iend-1] - r)/(fld->r[iend-1]-fld->r[istart]));
+		E0 = e0 * cexp(I*w) * cos( .5*M_PI*(fld->r[iend-1] - r)/(fld->r[iend-1]-fld->r[istart]));
 //		
 //		E0 = e0 * cexp(I*w) * exp(-(lr-r0)*(lr-r0)/(sigma*sigma));
 //		E0 = 0;
+
+//		E0 = e0 * cexp(I*w) * (lr - fld->lr[0]) / aspect;
 		fld->u[i] += I*(bfld->v[i])*E0;
 		fld->v[i] += .5*(bfld->v[i])*E0;	
+//		fld->sig[i] = (fld->u[i] + (fld->u[i+1] - fld->u[i-1])/(Params->dr) 
+//					- I*(fld->m)*(fld->v[i]))/(I*(Params->m)*bfld->v[i]);
+		fld->sig[i] = 0;
 	}
 
 /* Set B.C */	
@@ -102,7 +110,7 @@ void user_ic(Mode *fld) {
 	
 //	s_in_bc = fld->sig[istart];
 	s_in_bc = 0;
-	s_out_bc = 0;
+	s_out_bc = fld->sig[iend-1];
 //	s_out_bc = fld->sig[iend-1];
 	
 	for(i=0;i<istart;i++) {

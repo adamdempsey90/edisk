@@ -5,6 +5,14 @@ void user_bc(Mode *fld);
 void set_bc(Mode *fld) {
 	int i;
 	
+// 	if (creal(fld->u[iend-1]) < 0) {
+// 		fld->u[iend-1] = 0;
+// 	}
+// 	if (creal(fld->u[istart]) > 0) {
+// 		fld->u[istart] = 0;
+// 	}
+	
+	
 	for(i=0;i<istart;i++) {
 	
 #ifdef ZEROBC
@@ -15,13 +23,14 @@ void set_bc(Mode *fld) {
 		fld->v[i+iend] = fld->v[iend-i-1];
 		fld->sig[i+iend] = fld->sig[iend-i-1];
 #else
+
+		
 		fld->u[i] = fld->u[istart];
 		fld->v[i] = fld->v[istart];
 		fld->sig[i] = fld->sig[istart];
 		fld->u[i+iend] = fld->u[iend-1];
 		fld->v[i+iend] = fld->v[iend-1];
 		fld->sig[i+iend] = fld->sig[iend-1];
-		
 			
 // 		fld->u[i] = u_in_bc;
 // 		fld->v[i] = v_in_bc;
@@ -40,8 +49,9 @@ void set_bc(Mode *fld) {
 
 #endif
 
-	user_bc(fld);
 	}
+	user_bc(fld);
+
 	return;
 }
 
@@ -54,7 +64,7 @@ void wavekillbc(Mode *fld,double dt)
 	else x_in = (fld->lr[istart])*1.2;
 //	const double x_in = 0;
 	const double x_out = (fld->lr[iend-1])*0.8;
-	const double tauin = .1/(bfld->omk[istart]);
+	const double tauin = .5/(bfld->omk[istart]);
 	const double tauout = .05/(bfld->omk[iend-1]);
 	double complex ubc, vbc, sbc;
 	
@@ -113,12 +123,20 @@ void user_bc(Mode *fld) {
 	already set (so no need to explicitly set all b.c's if they're extrapolation).
 */
 	int i;
+	double divv;
+	
 	
 //	fld->u[0] = -(fld->u[1]);
 //	fld->v[0] = -(fld->v[1]);
 	
 	
+	fld->u[iend] = u_out_bc;
+	fld->v[iend] = v_out_bc;
+//	fld->sig[iend] = s_out_bc;
 //	fld->u[iend] = I*(fld->m)*(fld->v[iend-1])*2*(fld->dr)+(fld->u[iend-1])*(1-2*(fld->dr));
+
+//	fld->u[iend] = fld->u[iend-2] - 2*(fld->r[iend-1])*(Params->dr)*(fld->v[iend-1]);
+//	fld->sig[iend] = 0;
 
 //	fld->sig[iend] = - fld->sig[iend-1];
 
@@ -127,6 +145,9 @@ void user_bc(Mode *fld) {
  	
 // 	fld->v[istart-1] = - (fld->v[istart]);
 // 	fld->sig[istart-1] = - (fld->sig[istart]);
+
+
+
 	return;
 }
 
