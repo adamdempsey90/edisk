@@ -17,7 +17,7 @@ void init_star(Mode *fld) {
 	cstar->ms = .1;
 	cstar->r = 15.;
 	cstar->phi = 0;
-	cstar->oms = pow(cstar->r,-1.5);// * sqrt(1 + cstar->ms);;
+	cstar->oms = pow(cstar->r,-1.5) * sqrt(1 + cstar->ms);;
 	
 	grfac = -(cstar->ms)/(2*(cstar->r)*(cstar->r));
 	gpfac = (I*(fld->m)*(cstar->ms)/(2*(cstar->r)));

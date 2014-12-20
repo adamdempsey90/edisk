@@ -50,8 +50,11 @@ void alloc_fld(Mode *fld) {
 	Params->hor = (double *)malloc(sizeof(double)*NTOT);
 	if (Params->hor == NULL) malloc_err("H/R");
 		
-	Params->nu = (double *)malloc(sizeof(double)*NTOT);
-	if (Params->nu == NULL) malloc_err("nu");
+	Params->nus = (double *)malloc(sizeof(double)*NTOT);
+	if (Params->nus == NULL) malloc_err("nus");
+	
+	Params->nub = (double *)malloc(sizeof(double)*NTOT);
+	if (Params->nub == NULL) malloc_err("nub");
 
 	Params->c2 = (double *)malloc(sizeof(double)*NTOT);
 	if (Params->c2 == NULL) malloc_err("c2");
@@ -88,7 +91,8 @@ void free_fld(Mode *fld) {
 	free(bfld);
 	
 	free(Params->hor);
-	free(Params->nu);
+	free(Params->nus);
+	free(Params->nub);
 	free(Params->c2);
 	free(Params);
 

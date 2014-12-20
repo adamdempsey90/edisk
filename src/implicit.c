@@ -14,7 +14,8 @@ typedef struct CNmats {
 } CNmats;
 
 
-void get_matrices(int indx, double dt, double r, double m, double nu, double c, double omk, 
+void get_matrices(int indx, double dt, double r, double m, double nu, double nub,
+							double c, double omk, 
 							double dlomk, double complex ul, double complex uc, 
 							double complex ur, double complex vl, double complex vc,
 							double complex vr, double complex sl, double complex sc, 
@@ -23,7 +24,7 @@ void get_matrices(int indx, double dt, double r, double m, double nu, double c, 
 void cn_solver_init(void);
 void cn_solver_free(void);
 
-void get_bc_matrix(double complex u, double complex v, double complex s);
+void get_bc_matrix(int type, double complex u, double complex v, double complex s);
 
 
 CNmats *cn_mats;
@@ -40,7 +41,7 @@ void cranknicholson_step(double dt, double t, Mode *fld) {
 	
 /* Step 1.1 Get the A,B,C, and K block matrices 	*/
 		if (i!=0 && i!=NTOT-1) {
-			get_matrices(i-istart,dt,fld->r[i], fld->m,Params->nu[i],
+			get_matrices(i-istart,dt,fld->r[i], fld->m,Params->nus[i],Params->nub[i],
 							Params->c2[i],bfld->omk[i],bfld->dlomk[i],
 							fld->u[i-1],fld->u[i],fld->u[i+1],
 							fld->v[i-1],fld->v[i],fld->v[i+1],
@@ -48,7 +49,7 @@ void cranknicholson_step(double dt, double t, Mode *fld) {
 		}
 		else {
 		
-			get_bc_matrix(fld->u[i],fld->v[i],fld->sig[i]);
+			get_bc_matrix(i,fld->u[i],fld->v[i],fld->sig[i]);
 		
 		}
 		
@@ -107,7 +108,7 @@ void cranknicholson_step(double dt, double t, Mode *fld) {
 
 
 
-void get_matrices(int indx, double dt, double r, double m, double nu,
+void get_matrices(int indx, double dt, double r, double m, double nus, double nub,
 						    double c, double omk, double dlomk, 
 							double complex ul,double complex uc, double complex ur, 
 							double complex vl, double complex vc, double complex vr, 
@@ -129,13 +130,15 @@ void get_matrices(int indx, double dt, double r, double m, double nu,
 	double dr2 = dr * dr;
 	double m2 = m*m;
 	
-	double gam = Params->indsig + Params->indnu ;
+	double gams = Params->indsig + Params->indnus ;
+	double gamb = Params->indsig + Params->indnub;
 	
 #ifdef COMPANION
 	omf = cstar->oms;
 #else
 	omf = 0;
 #endif
+	
 	
 	
 	
@@ -160,18 +163,26 @@ void get_matrices(int indx, double dt, double r, double m, double nu,
 
 
 /* Main Diagonal, viscous */
-	A[0][0] += (-nu*r2)*(m2 + (4./3) + (2./3)*gam);
-	A[0][1] += (nu*I*m/r2)*((7./3) + (2./3)*gam);
-	A[0][2] += (-nu*I*m*omk/r) * dlomk;
+
+/* shear viscosity */
+
+	A[0][0] += -nus*(2 + m2)/r2 ;
+	A[0][1] += nus*3*I*m/r2;
+	A[0][2] += -nus*I*m*dlomk*omk/r;
 	
-	A[1][0] += (-nu*I*m/r2)*((7./3) - gam);
-	A[1][1] += (-nu/r2)*((4./3)*m2 + gam + 1);
+	A[1][0] += -nus*I*m*(gams+3)/r2;
+	A[1][1] += -nus*(gams+1+2*m2)/r2;
 	A[1][2] += 0;
 	
-	A[2][0] += 0;
-	A[2][1] += 0;
-	A[2][2] += 0;
-
+/* bulk viscosity */
+	A[0][0] += -nub*(gamb -1)/r2 ;
+	A[0][1] += -nub*I*m*(gamb-1)/r2;
+	A[0][2] += 0;
+	
+	A[1][0] += -nub*I*m/r2;
+	A[1][1] += -nub*m2/r2;
+	A[1][2] += 0;
+	
 
 	
 // Look at just advection!	
@@ -181,29 +192,37 @@ void get_matrices(int indx, double dt, double r, double m, double nu,
 #ifdef IMPLICIT
 	B[0][0] = 0;
 	B[0][1] = 0;
-	B[0][2] = -c/r;
+	B[0][2] = -c;
 	
 	B[1][0] = 0;
 	B[1][1] = 0;
 	B[1][2] = 0;
 	
-	B[2][0]= -1.0/r;
+	B[2][0]= -1.0;
 	B[2][1] = 0;
 	B[2][2] = 0;
 
 /* D matrix, viscous */	
+/* shear viscosity */
 
-	B[0][0] += (nu/r2)*( (-2./3) + (4./3)*gam);
-	B[0][1] += ( - I * m *nu/(3*r2));
+	B[0][0] += nus*2*(gams+1)/r;
+	B[0][1] += -nus*I*m/r;
 	B[0][2] += 0;
 	
-	B[1][0] += (-I*m*nu/(3*r2));
-	B[1][1] += nu*gam/r2;
-	B[1][2] += omk*dlomk*nu/r;
+	B[1][0] += -nus*I*m/r;
+	B[1][1] += nus*(gams+1)/r;
+	B[1][2] += nus*dlomk*omk;
 	
-	B[2][0] += 0;
-	B[2][1] += 0;
-	B[2][2] += 0;
+/* bulk viscosity */
+
+	B[0][0] += nub*(gamb+1)/r;
+	B[0][1] += -nub*I*m/r;
+	B[0][2] += 0;
+	
+	B[1][0] += -nub*I*m/r;
+	B[1][1] += 0;
+	B[1][2] += 0;
+		
 #else
 	B[0][0] = 0;
 	B[0][1] = 0;
@@ -219,17 +238,24 @@ void get_matrices(int indx, double dt, double r, double m, double nu,
 	
 /* D2 matrix, viscous */	
 
-	C[0][0] = 4*nu/3.;
+/* shear viscosity */
+	C[0][0] = 2*nus;
 	C[0][1] = 0;
 	C[0][2] = 0;
 	
 	C[1][0] = 0;
-	C[1][1] = nu;
+	C[1][1] = nus;
 	C[1][2] = 0;
 	
-	C[2][0] = 0;
-	C[2][1] = 0;
-	C[2][2] = 0;
+/* bulk viscosity */
+	
+	C[0][0] += nub;
+	C[0][1] += 0;
+	C[0][2] += 0;
+	
+	C[1][0] += 0;
+	C[1][1] += 0;
+	C[1][2] += 0;
 
 /* Force Vector */
 
@@ -259,11 +285,21 @@ void get_matrices(int indx, double dt, double r, double m, double nu,
 	for(i=0;i<3;i++) {
 		for(j=0;j<3;j++) {
 			
-			M[i][j] = .5*dt* (A[i][j] - 2*C[i][j]/dr2);
-			U[i][j]= .5*dt*(C[i][j]/dr2 + .5*B[i][j]/dr);
-			L[i][j] = .5*dt*(C[i][j]/dr2 - .5*B[i][j]/dr);
+			M[i][j] =  (A[i][j] - 2*C[i][j]/dr2);
+			U[i][j]= (C[i][j]/dr2 + .5*(B[i][j]-C[i][j])/(r*dr));
+			L[i][j] = (C[i][j]/dr2 - .5*(B[i][j]-C[i][j])/(r*dr));
+#ifndef INFINITE
+			M[i][j] *= .5*dt;
+			U[i][j] *= .5*dt;
+			L[i][j] *= .5*dt;
+#endif
 		}
 	}
+#ifdef INFINITE
+	K[0] = F[0];
+	K[1] = F[1];
+	K[2] = F[2];
+#else
 	K[0] =    M[0][0]*uc + M[0][1]*vc + M[0][2]*sc
 			+ U[0][0]*ur + U[0][1]*vr + U[0][2]*sr
 			+ L[0][0]*ul + L[0][1]*vl + L[0][2]*sl
@@ -278,23 +314,25 @@ void get_matrices(int indx, double dt, double r, double m, double nu,
 			+ U[2][0]*ur + U[2][1]*vr + U[2][2]*sr
 			+ L[2][0]*ul + L[2][1]*vl + L[2][2]*sl
 			+ dt*F[2] + sc;
-	
+#endif	
 	for(i=0;i<3;i++) {
 		for(j=0;j<3;j++) {
 			M[i][j] *= -1;
 			U[i][j] *= -1;
 			L[i][j] *= -1;
+#ifndef INFINITE
 			if (i==j) M[i][j] += 1;
-
+#endif
 		}
 	}
 
 	return;
 }
 
-void get_bc_matrix(double complex u, double complex v, double complex s) {
+void get_bc_matrix(int type, double complex u, double complex v, double complex s) {
 	int i,j;
-	
+
+
 	for(i=0;i<3;i++) {
 		for(j=0;j<3;j++) {
 			U[i][j] = 0;
@@ -303,10 +341,38 @@ void get_bc_matrix(double complex u, double complex v, double complex s) {
 			else M[i][j] = 0;	
 		}
 	}
+	
+#ifdef INFINITE
+	if (type==0)  {
+//		U[0][0] = -1;
+//		U[1][1] = -1;
+	
+		U[2][2] = -1;
+//		K[0] = 0;
+//		K[1] = 0;
+		K[0] =  u_in_bc;
+		K[1] = v_in_bc;
+		K[2] = 0;
+	
+	}
+	
+	if (type==NTOT-1) {
+//		L[0][0] = -1;
+//		L[1][1] = -1;
+	
+		L[2][2] = -1;
+//		K[0] = 0;
+//		K[1] = 0;
+		K[0] =  u_out_bc;
+		K[1] = v_out_bc;
+		K[2] = 0;
+	}
+
+#else	
 	K[0] = u;
 	K[1] = v;
 	K[2] = s;
-
+#endif
 	return;
 }
 void cn_solver_init(void) {

@@ -176,7 +176,7 @@ double complex rktvd_rhs_s(int iB, double r, double complex uL, double complex u
 
 void coefficient_matrix(Mode *fld) {
 	int i,indx;
-	double omk, dlomk, gam, r, m, c2,nu;
+	double omk, dlomk, gams, gamb,r, m, c2,nus,nub;
 	
 	
 // OPENMP	
@@ -184,11 +184,13 @@ void coefficient_matrix(Mode *fld) {
 
 		omk = bfld->omk[i];
 		dlomk = bfld->dlomk[i];
-		nu = Params->nu[i];
+		nus = Params->nus[i];
+		nub = Params->nub[i];
 		r = fld->r[i];
 		m = fld->m;
 		c2 = Params->c2[i];
-		gam = Params->indnu + Params->indsig;
+		gams = Params->indnus + Params->indsig;
+		gamb = Params->indnub + Params->indsig;
 		
 // 		indx = col + 3*row + (i-istart)*9
 		indx = (i-istart)*9;

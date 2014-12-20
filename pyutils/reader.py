@@ -1,5 +1,5 @@
 class Field():
-	def __init__(self,t,outdir='',loadrhs=False,rhsnum=0,NG=1,etol=1e-8):	
+	def __init__(self,t,outdir='',loadghost=False,loadrhs=False,rhsnum=0,NG=1,etol=1e-8):	
 		disk = loadtxt(outdir+'disk.dat')
 		self.r = disk[:,0]
 		self.nlr = disk[:,1]
@@ -8,7 +8,9 @@ class Field():
 		self.width = self.nr*self.dr
 		self.hor = disk[:,2]
 		self.c2 = disk[:,3]
-		self.nu = disk[:,4]
+		self.nus = disk[:,4]
+		self.nub = disk[:,5]
+		self.nu = self.nus + self.nub
 		dat = loadtxt(outdir + 'output_'+str(t)+'.dat')
 		self.u = dat[:,2]+1j*dat[:,3]
 		self.v = dat[:,4] + 1j*dat[:,5]
@@ -19,7 +21,25 @@ class Field():
 		self.dbar = dat[:,10]
 		self.E = (2*self.v - 1j*self.u) / (2*self.vyb)
 		
-
+		
+		if not loadghost:
+			self.r = self.r[NG:-NG]
+			self.nlr = self.nlr[NG:-NG]
+			self.hor = self.hor[NG:-NG]
+			self.c2 = self.c2[NG:-NG]
+			self.nus = self.nus[NG:-NG]
+			self.nub = self.nub[NG:-NG]
+			self.nu = self.nu[NG:-NG]
+			self.u = self.u[NG:-NG]
+			self.v = self.v[NG:-NG]
+			self.sig = self.sig[NG:-NG]
+			self.vyb = self.vyb[NG:-NG]
+			self.omk = self.omk[NG:-NG]
+			self.omk0 = self.omk0[NG:-NG]
+			self.dbar = self.dbar[NG:-NG]
+			self.E = self.E[NG:-NG]
+			
+			
 #		self.E = (abs(real(self.E))>etol).astype('int')*real(self.E) \
 #				+1j*(abs(imag(self.E))>etol).astype('int') * imag(self.E)
 #		self.E *= (((abs(real(self.E))<=etol).astype('int') * (abs(imag(self.E))<=etol).astype('int')+1)%2)
@@ -39,22 +59,44 @@ class Field():
 			self.dtu = rhs[:,2]+rhs[:,3]*1j
 			self.dtv = rhs[:,4] + rhs[:,5]*1j
 			self.dts = rhs[:,6] + rhs[:,7]*1j
+			if not loadghost:
+				self.dtu = self.dtu[NG:-NG]
+				self.dtv = self.dtv[NG:-NG]
+				self.dts = self.dts[NG:-NG]
+				
 		else:
 			self.dtu = 0
 			self.dtv = 0
 			self.dts = 0
-	def plot(self,q,linestyle='-',logr=True):
+	def plot(self,q,linestyle='-',logr=True,Nph=200,xnorm=0,ynorm=0):
 	
-		if q not in ['u','v','sig','E','nu','c2','hor','omk','dbar','vybar','dtu','dtv','dts','e','w','ex','ey']:
+		if q not in ['u','v','sig','E','nu','c2','hor','omk','dbar','vybar','dtu','dtv','dts','e','w','ex','ey'] \
+		and q not in ['vx','vy','vyp','dens']:
 			print 'Not Valid Variable Name'
 			return
+		
+		if q in ['vx','vy','vyp','dens']:
+			phi = linspace(-pi,pi,Nph)
+			x = zeros((len(fld.nlr),Nph))
+			y = zeros((len(fld.nlr),Nph))
+			dat = zeros((len(fld.nlr),Nph))
+			for i in range(Nph):
+				x[:,i] = fld.nlr * cos(phi[i])
+				y[:,i] = fld.nlr * sin(phi[i])
+		
+		
 			
 		if logr:
-			r = self.r
+			r = copy(self.r)
 			xname = '$\ln r$'
 		else:
-			r = self.nlr
+			r = copy(self.nlr)
 			xname = '$r$'
+			
+		if xnorm != 0:
+			r /= xnorm
+			
+			
 		if q=='u':
 			fig,(ax1,ax2)=subplots(2,sharex=True)
 			ax1.set_title('u')
@@ -97,10 +139,15 @@ class Field():
 			ax.plot(r,self.omk,linestyle)
 			ax.set_xlabel(xname)
 		if q=='nu':
-			fig,ax = subplots()
-			ax.set_title('$\\nu$')
-			ax.plot(r,self.nu,linestyle)
-			ax.set_xlabel(xname)
+			fig,(ax1,ax2,ax3)= subplots(3,sharex=True)
+			ax1.set_title('$\\nu$')
+			ax1.set_ylabel('$\\nu$')
+			ax2.set_ylabel('$\\nu_s$')
+			ax3.set_ylabel('$\\nu_b$')
+			ax1.plot(r,self.nu,linestyle)
+			ax2.plot(r,self.nus,linestyle)
+			ax3.plot(r,self.nub,linestyle)
+			ax3.set_xlabel(xname)
 		if q=='c2':
 			fig,ax = subplots()
 			ax.set_title('$c^2$')
@@ -128,21 +175,24 @@ class Field():
 		if q=='e':
 			fig,ax = subplots()
 			ax.set_title('$e$')
-			ax.plot(r,abs(self.E),linestyle)
+			if ynorm == 0:
+				ax.plot(r,abs(self.E),linestyle)
+			else:
+				ax.plot(r,abs(self.E)/ynorm,linestyle)
 			ax.set_xlabel(xname)
 		if q=='w':
 			fig,ax = subplots()
-			ax.set_title('$e$')
-			ax.plot(r,angle(self.E),linestyle)
+			ax.set_title('$\\omega/\\pi$')
+			ax.plot(r,angle(self.E)/pi,linestyle)
 			ax.set_xlabel(xname)
 		if q=='ex':
 			fig,ax = subplots()
-			ax.set_title('$e$')
+			ax.set_title('$e_x$')
 			ax.plot(r,real(self.E),linestyle)
 			ax.set_xlabel(xname)	
 		if q=='ey':
 			fig,ax = subplots()
-			ax.set_title('$e$')
+			ax.set_title('$e_y$')
 			ax.plot(r,imag(self.E),linestyle)
 			ax.set_xlabel(xname)	
 		if q=='dtu':
@@ -170,7 +220,34 @@ class Field():
 			ax2.set_ylabel('Im(dts)')	
 			ax2.set_xlabel(xname)
 		
+		if q in ['vx','vy','vyp','dens']:
+			if q == 'dens':	
+				dens = zeros((len(fld.nlr),Nph))	
+				for i in range(Nph):
+					dens[:,i] = fld.dbar*(1 + 2*real(fld.sig*exp(-1j*phi[i])))
+					dat[:,i] = dens[:,i]/fld.dbar - 1;		
+			if q == 'vx':
+				for i in range(Nph):
+					dat[:,i] = 2*real(fld.u*exp(-1j*phi[i]))
+	
+			if q == 'vy':
+				for i in range(Nph):
+					dat[:,i] = 2*real(fld.v*exp(-1j*phi[i])) + fld.vyb
+	
+			if q == 'vyp':
+				for i in range(Nph):
+					dat[:,i] = 2*real(fld.v*exp(-1j*phi[i]))
+
+
+			figure()
+			pcolormesh(x,y,dat)
+			colorbar()
+			title(q)
+			xlabel('x')
+			ylabel('y')
 		
+	
+	
 		show()
 		
 		
@@ -467,6 +544,149 @@ def animate_real(q,t,xlims=None,ylims=None,Nph=200):
 	return dat,x,y,fld0
 
 
+def compare(q,fld_list,logr=True,linestyle='-'):
+
+	if q not in ['u','v','sig','E','nu','c2','hor','omk','dbar','vybar','e','w','ex','ey']:
+		print 'Not Valid Variable Name'
+		return
+		
+		
+	if logr:
+		r = [fld.r for fld in fld_list]
+		xname = '$\ln r$'
+	else:
+		r = [fld.nlrr for fld in fld_list]		
+		xname = '$r$'
+	
+	
+	leg_str = [ str(i) for i in range(len(fld_list))]
+		
+	if q=='u':
+		fig,(ax1,ax2)=subplots(2,sharex=True)
+		ax1.set_title('u')
+		ax1.set_ylabel('Re(u)')
+		ax2.set_ylabel('Im(u)')
+		ax2.set_xlabel(xname)
+		for i,fld in enumerate(fld_list):
+			ax1.plot(r[i],real(fld.u),linestyle)
+			ax2.plot(r[i],imag(fld.u),linestyle)
+		
+		
+	if q=='v':
+		fig,(ax1,ax2)=subplots(2,sharex=True)
+		ax1.set_title('v')
+		ax1.set_ylabel('Re(v)')
+		ax2.set_ylabel('Im(v)')
+		ax2.set_xlabel(xname)
+		for i,fld in enumerate(fld_list):
+			ax1.plot(r[i],real(fld.v),linestyle)
+			ax2.plot(r[i],imag(fld.v),linestyle)
+			
+	if q=='sig':
+		fig,(ax1,ax2)=subplots(2,sharex=True)
+		ax1.set_title('$\\sigma / <\\Sigma>$')
+		ax1.set_ylabel('Re($\\sigma$)')
+		ax2.set_ylabel('Im($\\sigma$)')
+		ax2.set_xlabel(xname)
+		for i,fld in enumerate(fld_list):
+			ax1.plot(r[i],real(fld.sig),linestyle)
+			ax2.plot(r[i],imag(fld.sig),linestyle)
+	if q=='vybar':
+		fig,ax = subplots()
+		ax.set_title('$<v_\\phi>$')
+		ax.set_xlabel(xname)
+		for i,fld in enumerate(fld_list):
+			ax.plot(r[i],fld.vyb,linestyle)
+		
+	if q=='dbar':
+		fig,ax = subplots()
+		ax.set_title('$<\\Sigma>$')
+		ax.set_xlabel(xname)
+		for i,fld in enumerate(fld_list):
+			ax.plot(r[i],fld.dbar,linestyle)
+		
+	if q=='omk':
+		fig,ax = subplots()
+		ax.set_title('$\\Omega_k$')
+		ax.set_xlabel(xname)
+		for i,fld in enumerate(fld_list):
+			ax.plot(r[i],fld.omk,linestyle)
+			
+	if q=='nu':
+		fig,(ax1,ax2,ax3)= subplots(3,sharex=True)
+		ax1.set_title('$\\nu$')
+		ax1.set_ylabel('$\\nu$')
+		ax2.set_ylabel('$\\nu_s$')
+		ax3.set_ylabel('$\\nu_b$')
+		ax3.set_xlabel(xname)
+		for i,fld in enumerate(fld_list):
+			ax1.plot(r[i],fld.nu,linestyle)
+			ax2.plot(r[i],fld.nus,linestyle)
+			ax3.plot(r[i],fld.nub,linestyle)
+			
+	if q=='c2':
+		fig,ax = subplots()
+		ax.set_title('$c^2$')
+		ax.set_xlabel(xname)
+		for i,fld in enumerate(fld_list):
+			ax.plot(r[i],fld.c2,linestyle)
+			
+	if q=='hor':	
+		fig,ax = subplots()
+		ax.set_title('$h/r$')
+		ax.set_xlabel(xname)
+		for i,fld in enumerate(fld_list):
+			ax.plot(r[i],fld.hor,linestyle)
+		
+	if q=='E':
+		fig,(ax1,ax2,ax3,ax4)=subplots(4,sharex=True)
+		ax1.set_title('Eccentricity')
+		ax1.set_ylabel('$e_x$')
+		ax2.set_ylabel('$e_y$')
+		ax3.set_ylabel('e')
+		ax4.set_ylabel('$\\omega/\\pi$')
+		ax4.set_xlabel(xname)
+		
+		for i,fld in enumerate(fld_list):
+			ax1.plot(r[i],real(fld.E),linestyle)
+			ax2.plot(r[i],imag(fld.E),linestyle)
+			ax3.plot(r[i],abs(fld.E),linestyle)
+			ax4.plot(r[i],angle(fld.E)/pi,linestyle)
+	
+	if q=='e':
+		fig,ax = subplots()
+		ax.set_title('$e$')
+		ax.set_xlabel(xname)
+		for i,fld in enumerate(fld_list):
+			ax.plot(r[i],abs(fld.E),linestyle)
+			
+	if q=='w':
+		fig,ax = subplots()
+		ax.set_title('$\\omega/\\pi$')
+		ax.set_xlabel(xname)
+		for i,fld in enumerate(fld_list):
+			ax.plot(r[i],angle(fld.E)/pi,linestyle)
+			
+			
+	if q=='ex':
+		fig,ax = subplots()
+		ax.set_title('$e_x$')
+		ax.set_xlabel(xname)	
+		for i,fld in enumerate(fld_list):
+			ax.plot(r[i],real(fld.E),linestyle)
+		
+	if q=='ey':
+		fig,ax = subplots()
+		ax.set_title('$e_y$')
+		ax.set_xlabel(xname)	
+		for i,fld in enumerate(fld_list):
+			ax.plot(r[i],imag(fld.E),linestyle)
+			
+
+	legend(leg_str,loc='best')
+	show()
+	
+
 class star():
 	def __init__(self,r,dbar,m,soft):
 			self.rs = 2*pi * trapz(dbar*r*r,x=r)
@@ -480,4 +700,123 @@ class star():
 				self.phi[i] = -2/sqrt(rsoft) * trapz(cos(m*phi)/sqrt(1+q*q+2*q*cos(phi)),x=phi)
 				self.gr[i] = -2*self.rs*r[i] / rsoft**2 * trapz(cos(m*phi)*(cos(phi) +q)*(1+q*q+2*q*cos(phi))**(-1.5),x=phi)
 				self.gp[i] = -1j*m * self.phi[i] / sqrt(rsoft)
+
+def E_pred(r,Ei,Eo,nu,beta,bc):
+# bc = 0 -> E(ri) = Ei & E(ro) = Eo
+# bc = 1 -> E'(ri) = 0 & E(ro) = Eo
+# bc = 2 -> E(ri) = Ei & E'(ro) = 0
+
+
+	ri = r[0]
+	ro = r[-1]
+	chi = ro/ri
+	eta = (1 + 1j*nu)/(1 + nu*nu)
+	gam = sqrt( 1 + beta*beta/4 + beta*(1 - eta))
+	print gam
+	ai = -1 - beta/2 - gam
+	ao = -1 - beta/2 + gam
+	
+# 	if bc not in ['Dirichlet','Neumann','dirichlet','neumann']:
+# 		print 'Not a valid boundary condition'
+# 		return
+		
+	if bc not in [0,1,2]:
+		print 'Not a valid b.c, using bc=0 as default'
+		bc = 0
+		
+		
+	if bc == 0:
+		A = (Ei - Eo*pow(chi,-ao))/(1 - pow(chi,ai-ao))
+		B = (Eo - Ei*pow(chi,ai))/(1- pow(chi,ai-ao))
+		
+	if bc==1:
+		A = -Eo*pow(chi,1-ao)/(1 - pow(chi,1+ai-ao))
+		B = Eo/(1 - pow(chi,1+ai-ao))
+	
+	if bc==2:
+		A = Ei/(1-pow(chi,ai-ao-1))
+		B = -Ei*pow(chi,ai-1)/(1- pow(chi,ai-ao-1))
+		
+		
+	return A*pow(r/ri,ai) + B*pow(r/ro,ao)
+	
+	
+# 	if bc in ['Dirichlet','dirichlet']:
+# 		faci = Ei * pow(r/ri,plaw) * ( ( 1 - pow(r/ro,-gam))/(1 - pow(ri/ro,-gam)))
+# 		faco = Eo * pow(r/ro,plaw) * ( ( 1 - pow(r/ri,-gam))/(1 - pow(ro/ri,-gam)))
+# 		return faci + faco
+# 	
+# 	if bc in ['Neumann','neumann']:
+# 		bfrac = beta/gam
+# 		norm = Eo * pow(r/ro,plaw)
+# 		fac1 = ( pow(r/ri,-gam) * ( 1 - bfrac) + 1 + bfrac)
+# 		fac2 = (pow(ro/ri,-gam) * ( 1 - bfrac) + 1 + bfrac)
+# 		return norm * fac1 / fac2
+	
+# 	faco = Eo*pow(ro,.5*(beta + bfac))*pow(ri,bfac)*(1-pow(r/ri,bfac))
+# 	faci =  Ei*pow(ri,.5*(beta + bfac))*pow(ro,bfac)*(1-pow(r/ro,bfac))
+# 	norm = pow(r,-1-.5*(beta + bfac))
+# 	norm /= (pow(ri,bfac) - pow(ro,bfac))
+	
+	
+	
+	
+def eccen_plots(r,bvals,Ei,Eo,nu,bc,linestyle='-',logscale=True,yscale=False):
+	
+	epred = [E_pred(r,Ei,Eo,nu,b,bc) for b in bvals]
+	
+	if bc not in [0,1,2]:
+		bc = 0
+	
+	if bc==0:
+		tstr = '$E(r_i)=$'+str(Ei)+' and $E(r_o)=$'+str(Eo)
+	if bc==1:
+		tstr = '$d_r E(r_i)= 0 $ and $E(r_o)=$'+str(Eo)
+	if bc==2:
+		tstr = '$E(r_i)=$'+str(Ei)+' and $d_rE(r_o)=0$'
+	
+	
+	fig,(ax1,ax2)=subplots(2,sharex=True)
+	ax1.set_title(tstr)
+	ax2.set_ylabel('$\\omega/ \\pi$')
+	
+	if logscale:
+		ax1.set_ylabel('$\ln (e/e_o)$')
+		ax2.set_xlabel('$\ln r$')
+	else:
+		ax1.set_ylabel('$e/e_o$')
+		ax2.set_xlabel('$r$')
+	
+	for i,ep in enumerate(epred):
+		if bc==2:
+			dat = abs(ep)/abs(ep[0])
+		else:
+			dat = abs(ep)/abs(ep[-1])
+			
+		if logscale:
+				
+			ax1.plot(log(r),log(dat),linestyle,label='$\\beta=$'+str(bvals[i]))
+		else:
+			ax1.plot(r,dat,linestyle,label='$\\beta=$'+str(bvals[i]))
+	
+	
+	ax1.legend(loc='lower right')
+#	gca().set_color_cycle(None)	
+	for i,ep in enumerate(epred):
+		if logscale:
+			ax2.plot(log(r),angle(ep)/pi,linestyle)
+		else:
+			ax2.plot(r,angle(ep)/pi,linestyle)
+		
+#	ax2.set_ylim(-1.1,1.1)
+	
+	if yscale:
+		if logscale:
+			ax1.set_ylim(-6,2)
+	show()
+	
+	
+	
+	
+	
 

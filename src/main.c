@@ -66,6 +66,14 @@ int main(int argc, char *argv[]) {
 
 
 	MPI_Printf("Starting Time Loop\n");	
+	
+#ifdef INFINITE
+	h = 1;
+	int status = algo_driver(&h,&t,fld);
+	MPI_Printf("\t\t OUTPUT %d, step size = INFINITE \n",outnum);
+	output(fld);
+
+#else	
 	while (t < Params->endt)
     {
       
@@ -110,7 +118,7 @@ int main(int argc, char *argv[]) {
 
 		}
     }
-
+#endif
 #if defined(IMPLICIT) || defined(SPLIT)
 	cn_solver_free();
 #else	

@@ -1,13 +1,14 @@
 # Input Parameters #
 # Disk Parameters	#
-Nr = 512
+Nr = 2048
 m = 1.0
-rmin = -1.5
-rmax = 1.01
+rmin = -1.0
+rmax = 2.2
 cfl = 2
-h0 = .05
+h0 = .1
 flare index = .5
-alpha = 0.01
+alpha shear = 0.05
+alpha bulk = 0
 sigma0 = .001
 sigma index = 0
 rot index =  -1.5
@@ -20,7 +21,7 @@ Ms = 1.0
 # Time Parameters	#
 t0 = 0
 tau = 0
-endt = 40000
-numf = 200
+endt = 100000
+numf = 1000
 tol = 1e-8
 outputdir = outputs/

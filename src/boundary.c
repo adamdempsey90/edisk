@@ -132,6 +132,8 @@ void user_bc(Mode *fld) {
 	
 	fld->u[iend] = u_out_bc;
 	fld->v[iend] = v_out_bc;
+
+
 //	fld->sig[iend] = s_out_bc;
 //	fld->u[iend] = I*(fld->m)*(fld->v[iend-1])*2*(fld->dr)+(fld->u[iend-1])*(1-2*(fld->dr));
 

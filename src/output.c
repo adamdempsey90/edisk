@@ -92,7 +92,8 @@ void output_params(void) {
 		\tcfl = %lg\n \
 		\th0 = %lg\n \
 		\tflare index = %lg\n \
-		\talpha = %lg\n \
+		\talpha shear = %lg\n \
+		\talpha bulk = %lg\n \
 		\tsigma0 = %lg\n \
 		\tsigma index = %lg\n \
 		\tMdisk = %lg\n \
@@ -117,7 +118,8 @@ void output_params(void) {
 		Params->cfl,
 		Params->h,
 		Params->indfl,
-		Params->alpha,
+		Params->alpha_s,
+		Params->alpha_b,
 		Params->sig0,
 		Params->indsig,
 		Params->Mdisk,
@@ -144,13 +146,14 @@ void output_disk(double *lr,double *r) {
 	strcpy(fname,Params->outdir);
 	strcat(fname,"disk.dat");
 	FILE *f = fopen(fname,"w");
-	fprintf(f,"# logr \t r \t h/r \t c^2 \t nu\n");
+	fprintf(f,"# logr \t r \t h/r \t c^2 \t nu_s \t nu_b \n");
 	for(i=0;i<NTOT;i++) {
-		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\n",
+		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
 		lr[i],r[i],
 		Params->hor[i],
 		Params->c2[i],
-		Params->nu[i]);
+		Params->nus[i],
+		Params->nub[i]);
 	}
 	fclose(f);
 	return;

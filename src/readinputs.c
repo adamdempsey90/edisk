@@ -16,7 +16,8 @@ void read_inputs(char *inputdir) {
 			cfl,
 			h,
 			indfl,
-			alpha,
+			alpha_s,
+			alpha_b,
 			sig0,
 			indsig,
 			q,
@@ -47,7 +48,8 @@ void read_inputs(char *inputdir) {
 	fscanf(f,"cfl = %lg \n",&cfl);
 	fscanf(f,"h0 =  %lg \n",&h);
 	fscanf(f,"flare index = %lg \n", &indfl);
-	fscanf(f,"alpha =  %lg \n",&alpha);
+	fscanf(f,"alpha shear =  %lg \n",&alpha_s);
+	fscanf(f,"alpha bulk =  %lg \n",&alpha_b);
 	fscanf(f,"sigma0 =  %lg \n",&sig0);
 	fscanf(f,"sigma index =  %lg \n",&indsig);
 	fscanf(f,"rot index =  %lg \n",&q);
@@ -73,7 +75,8 @@ void read_inputs(char *inputdir) {
 	Params->cfl = cfl;
 	Params->h = h;
 	Params->indfl = indfl;
-	Params->alpha = alpha;
+	Params->alpha_s = alpha_s;
+	Params->alpha_b = alpha_b;
 	Params->sig0 = sig0;
 	Params->indsig = indsig;
 	Params->q = q;
@@ -113,7 +116,8 @@ void read_inputs(char *inputdir) {
 		\tcfl = %lg\n \
 		\th0 = %lg\n \
 		\tflare index = %lg\n \
-		\talpha = %lg\n \
+		\talpha shear = %lg\n \
+		\talpha bulk = %lg \n \
 		\tsigma0 = %lg\n \
 		\tsigma index = %lg\n \
 		\tMdisk = %lg\n \
@@ -138,7 +142,8 @@ void read_inputs(char *inputdir) {
 		Params->cfl,
 		Params->h,
 		Params->indfl,
-		Params->alpha,
+		Params->alpha_s,
+		Params->alpha_b,
 		Params->sig0,
 		Params->indsig,
 		Params->Mdisk,

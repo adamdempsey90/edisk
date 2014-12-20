@@ -27,7 +27,16 @@ def generate_extra_files(defs):
 		print 'Error cannot have both IMPLICIT and SPLIT flags'
 		return ''
 	
-
+	if 'INFINITE' in defs:
+		if 'SPLIT' in defs:
+			print 'Error cannot have both INFINITE and SPLIT flags'
+		if 'WAVEKILL' in defs or 'KILLIN' in defs or 'KILLOUT' in defs:
+			print 'Error cannot have both INFINITE and WAVEKILL flags'
+		if 'IMPLICIT' not in defs:
+			print 'Error must have IMPLICIT enabled with INFINITE'
+	
+	
+	
 	if 'IMPLICIT' in defs or 'SPLIT' in defs:
 		algfile = 'algo_driver.c implicit.c'
 	else:

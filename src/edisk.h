@@ -47,8 +47,10 @@ typedef struct Parameters {
 			cfl,
 			h,
 			indfl,
-			alpha,
-			indnu,
+			alpha_s,
+			alpha_b,
+			indnus,
+			indnub,
 			sig0,
 			indsig,
 			Mdisk,
@@ -70,7 +72,7 @@ typedef struct Parameters {
 	int numf;
 	char outdir[100];
 	
-	double *hor, *nu, *c2;
+	double *hor, *nus, *nub, *c2;
 
 } Parameters;
 

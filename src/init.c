@@ -38,8 +38,8 @@ void init_fld(Mode *fld) {
 		Params->c2[i] = (Params->hor[i])*
 							(Params->hor[i])*r*r*(bfld->omk[i])*(bfld->omk[i]);
 		
-		Params->nu[i] = (Params->alpha)*(Params->hor[i])*(Params->hor[i])*(bfld->omk[i])*r*r;
-		
+		Params->nus[i] = (Params->alpha_s)*(Params->hor[i])*(Params->hor[i])*(bfld->omk[i])*r*r;
+		Params->nub[i] = (Params->alpha_b)*(Params->hor[i])*(Params->hor[i])*(bfld->omk[i])*r*r;
 		
 		bfld->omk[i] *= sqrt( 1 + (Params->hor[i])*(Params->hor[i])*(Params->indsig));
 		
@@ -53,8 +53,9 @@ void init_fld(Mode *fld) {
 		fld->v[i] = 0;
 		fld->sig[i] = 0;
 	}
-	Params->indnu = 2 *(Params->indfl) + Params->q + 2;
-
+	Params->indnus = 2 *(Params->indfl) + Params->q + 2;
+	Params->indnub = 2 *(Params->indfl) + Params->q + 2;
+	
 	calc_cmax(fld);
 	
 	user_ic(fld);
@@ -79,7 +80,7 @@ void user_ic(Mode *fld) {
 	double sigma = .05;
 	double r0 = -.2;
 	double aspect = (fld->lr[iend] - fld->lr[0]);
-	for(i=istart;i<iend;i++) {
+	for(i=0;i<NTOT;i++) {
 		lr = fld->lr[i];
 		r = fld->r[i];
 //		E0 = e0*cexp(I*w); //* cexp(I*drw*lr);
@@ -90,8 +91,8 @@ void user_ic(Mode *fld) {
 //		E0 = 0;
 
 //		E0 = e0 * cexp(I*w) * (lr - fld->lr[0]) / aspect;
-		fld->u[i] += I*(bfld->v[i])*E0;
-		fld->v[i] += .5*(bfld->v[i])*E0;	
+		fld->u[i] = I*(bfld->v[i])*E0;
+		fld->v[i] = .5*(bfld->v[i])*E0;	
 //		fld->sig[i] = (fld->u[i] + (fld->u[i+1] - fld->u[i-1])/(Params->dr) 
 //					- I*(fld->m)*(fld->v[i]))/(I*(Params->m)*bfld->v[i]);
 		fld->sig[i] = 0;
@@ -113,14 +114,14 @@ void user_ic(Mode *fld) {
 	s_out_bc = fld->sig[iend-1];
 //	s_out_bc = fld->sig[iend-1];
 	
-	for(i=0;i<istart;i++) {
-		fld->u[i] = u_in_bc;
-		fld->v[i] = v_in_bc;
-		fld->sig[i] = s_in_bc;
-		fld->u[i+iend] = u_out_bc;
-		fld->v[i+iend] = v_out_bc;
-		fld->sig[i+iend] = s_out_bc;
-	}
+// 	for(i=0;i<istart;i++) {
+// 		fld->u[i] = u_in_bc;
+// 		fld->v[i] = v_in_bc;
+// 		fld->sig[i] = s_in_bc;
+// 		fld->u[i+iend] = u_out_bc;
+// 		fld->v[i+iend] = v_out_bc;
+// 		fld->sig[i+iend] = s_out_bc;
+// 	}
 	
 	return;
 }

@@ -34,9 +34,9 @@ void algogas(double t,Mode *fld) {
 	double complex dru,drv,drs,d2ru,d2rv,u,v,sig;
 	double complex divv;
 //	double vr,vph,drvr;
-	double dlomk,nusinds;
+	double dlomk,nusinds,nubsinds;
 	double dr,dr2,m, r,r2,omk,omf;
-	double c2,nu;
+	double c2,nus,nub;
 
 #ifdef COMPANION 	
 	omf = cstar->oms;
@@ -148,10 +148,12 @@ void algogas(double t,Mode *fld) {
 		omk = bfld->omk[i];
 		dlomk = bfld->dlomk[i];
 		c2 = Params->c2[i];
-		nu = Params->nu[i];
-	
-		nusinds = Params->indsig + Params->indnu;
-	
+		
+		nus = Params->nus[i];
+		nub = Params->nub[i];
+		
+		nusinds = Params->indsig + Params->indnus;
+		nubsinds= Params->indsig + Params->indnub
 		
 /* 	Do u eqn first */
 
@@ -165,12 +167,13 @@ void algogas(double t,Mode *fld) {
 // 		fld->dtu[it] += nu*(d2ru - m*m*u)/r2;
 	
 	
-		fld->dtu[it] += 2*nu*d2ru + 2*nu*dru/r
-					-(I*nu*m/r)*(drv - v/r - I*m*u/r)
-					-(2*nu/r2)*(u-I*m*v)
-					+nu*2*dru*nusinds/r2
-					-(I*nu*m/r)*omk*dlomk*sig
-					-(2.*nu/(3.*r))*(divv*nusinds + dru - u/r + r*d2ru - I*m*drv+I*m*v/r);
+		fld->dtu[it] += 2*nus*d2ru + 2*nu*dru/r2
+					-(I*nus*m/r)*(drv - v/r - I*m*u/r)
+					-(2*nus/r2)*(u-I*m*v)
+					+nus*2*dru*nusinds/r2
+					-(I*nus*m/r)*omk*dlomk*sig;
+		
+		fld->dtu[it] -=	(2.*nub/(3.*r))*(divv*nubsinds + dru - u/r + r*d2ru - I*m*drv+I*m*v/r);
  					
 /* Stellar Potential indirect term */
 #if defined(INDIRECT) || defined(COMPANION)
@@ -187,11 +190,12 @@ void algogas(double t,Mode *fld) {
 
  //		fld->dtv[it] += nu*(d2rv- m*m*v)/r2;
 
-		fld->dtv[it] += nu*(d2rv + drv/r - (v+I*m*u)/(r*r) - I*m*dru/r)
-					-I*m*nu*(u-I*m*v)*2/(r*r) 
-					+ nu*(drv-v-I*m*u)*nusinds/r2
-					+ nu*omk*dlomk*drs
-					-(2.*nu/(3.*r))*(-I*m*divv);
+		fld->dtv[it] += nus*(d2rv + drv/r - (v+I*m*u)/(r*r) - I*m*dru/r)
+					-I*m*nus*(u-I*m*v)*2/(r*r) 
+					+ nus*(drv-v-I*m*u)*nusinds/r2
+					+ nus*omk*dlomk*drs;
+					
+		fld->dtv[it] += (2.*nub/(3.*r))*(I*m*divv);
  					
 					
 /* Stellar Potential indirect term */
