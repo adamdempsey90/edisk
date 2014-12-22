@@ -712,9 +712,16 @@ def E_pred(r,Ei,Eo,nu,beta,bc):
 	chi = ro/ri
 	eta = (1 + 1j*nu)/(1 + nu*nu)
 	gam = sqrt( 1 + beta*beta/4 + beta*(1 - eta))
-	print gam
-	ai = -1 - beta/2 - gam
-	ao = -1 - beta/2 + gam
+
+
+#	ai = -1 - beta/2 - gam
+#	ao = -1 - beta/2 + gam
+	
+	ai = -2
+	ao = -beta
+
+	print 'Inner power law is: ', ai
+	print 'Outer power law is: ', ao
 	
 # 	if bc not in ['Dirichlet','Neumann','dirichlet','neumann']:
 # 		print 'Not a valid boundary condition'

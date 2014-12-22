@@ -130,7 +130,7 @@ void get_matrices(int indx, double dt, double r, double m, double nus, double nu
 	double dr2 = dr * dr;
 	double m2 = m*m;
 	
-	double gams = Params->indsig + Params->indnus ;
+	double gams = Params->indsig + Params->indnus;
 	double gamb = Params->indsig + Params->indnub;
 	
 #ifdef COMPANION
@@ -246,6 +246,10 @@ void get_matrices(int indx, double dt, double r, double m, double nus, double nu
 	C[1][0] = 0;
 	C[1][1] = nus;
 	C[1][2] = 0;
+	
+	C[2][0] = 0;
+	C[2][1] = 0;
+	C[2][2] = 0;
 	
 /* bulk viscosity */
 	

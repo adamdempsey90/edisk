@@ -7,10 +7,10 @@ rmax = 2.2
 cfl = 2
 h0 = .1
 flare index = .5
-alpha shear = 0.05
-alpha bulk = 0
+alpha shear = 0.0
+alpha bulk = 0.001
 sigma0 = .001
-sigma index = 0
+sigma index = -.5
 rot index =  -1.5
 # Initial Eccentricity  #
 initial e = .1
