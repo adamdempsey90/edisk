@@ -41,10 +41,10 @@ void init_fld(Mode *fld) {
 		Params->nus[i] = (Params->alpha_s)*(Params->hor[i])*(Params->hor[i])*(bfld->omk[i])*r*r;
 		Params->nub[i] = (Params->alpha_b)*(Params->hor[i])*(Params->hor[i])*(bfld->omk[i])*r*r;
 		
-		bfld->omk[i] *= sqrt( 1 + (Params->hor[i])*(Params->hor[i])*(Params->indsig));
-		
- 		bfld->dlomk[i] += 
- 				(1-pow((Params->om0)*pow(r,Params->q)/(bfld->omk[i]),2))*(Params->indfl);
+// 		bfld->omk[i] *= sqrt( 1 + (Params->hor[i])*(Params->hor[i])*(Params->indsig));
+// 		
+//  		bfld->dlomk[i] += 
+//  				(1-pow((Params->om0)*pow(r,Params->q)/(bfld->omk[i]),2))*(Params->indfl);
 			
 		bfld->v[i] = r * (bfld->omk[i]);
 		bfld->u[i] = 0;

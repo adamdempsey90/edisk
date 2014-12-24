@@ -701,7 +701,7 @@ class star():
 				self.gr[i] = -2*self.rs*r[i] / rsoft**2 * trapz(cos(m*phi)*(cos(phi) +q)*(1+q*q+2*q*cos(phi))**(-1.5),x=phi)
 				self.gp[i] = -1j*m * self.phi[i] / sqrt(rsoft)
 
-def E_pred(r,Ei,Eo,nu,beta,bc):
+def E_pred(r,Ei,Eo,beta,alpha_b,alpha_s,gamma_s,gamma_b,bc):
 # bc = 0 -> E(ri) = Ei & E(ro) = Eo
 # bc = 1 -> E'(ri) = 0 & E(ro) = Eo
 # bc = 2 -> E(ri) = Ei & E'(ro) = 0
@@ -710,16 +710,25 @@ def E_pred(r,Ei,Eo,nu,beta,bc):
 	ri = r[0]
 	ro = r[-1]
 	chi = ro/ri
-	eta = (1 + 1j*nu)/(1 + nu*nu)
-	gam = sqrt( 1 + beta*beta/4 + beta*(1 - eta))
+#	eta = (1 + 1j*nu)/(1 + nu*nu)
+#	gam = sqrt( 1 + beta*beta/4 + beta*(1 - eta))
 
 
 #	ai = -1 - beta/2 - gam
 #	ao = -1 - beta/2 + gam
-	
-	ai = -2
-	ao = -beta
 
+	a2= 1-1j*alpha_b
+	
+	a0 = 2*beta-1j*alpha_s*(2-2.5*gamma_s+1.5*beta)
+	a1 = beta+3-1j*alpha_b*(gamma_b+1.5)-1j*alpha_s*(3*(gamma_s-beta) - .5)
+	
+	a0 /= a2
+	a1 /= a2
+	
+	ai = .5*(1-a1 - sqrt((a1-1)**2 -4*a0))
+	ao = .5*(1-a1 + sqrt((a1-1)**2 -4*a0))
+
+	print 'Density power law is: ',beta
 	print 'Inner power law is: ', ai
 	print 'Outer power law is: ', ao
 	
@@ -745,7 +754,14 @@ def E_pred(r,Ei,Eo,nu,beta,bc):
 		B = -Ei*pow(chi,ai-1)/(1- pow(chi,ai-ao-1))
 		
 		
-	return A*pow(r/ri,ai) + B*pow(r/ro,ao)
+		
+	print 'Inner coefficient: ', A
+	print 'Outer coefficient: ', B
+	
+		
+	out = A*pow(r/ri,ai) + B*pow(r/ro,ao)	
+#	out *= ((((abs(real(out))<1e-10) & (abs(imag(out))<1e-10)).astype(int) + 1 ) % 2 )
+	return out
 	
 	
 # 	if bc in ['Dirichlet','dirichlet']:
@@ -768,9 +784,9 @@ def E_pred(r,Ei,Eo,nu,beta,bc):
 	
 	
 	
-def eccen_plots(r,bvals,Ei,Eo,nu,bc,linestyle='-',logscale=True,yscale=False):
+def eccen_plots(r,bvals,Ei,Eo,alpha_b,alpha_s,gamma_s,gamma_b,bc,linestyle='-',logscale=True,yscale=False):
 	
-	epred = [E_pred(r,Ei,Eo,nu,b,bc) for b in bvals]
+	epred = [E_pred(r,Ei,Eo,b,alpha_b,alpha_s,gamma_s,gamma_b,bc) for b in bvals]
 	
 	if bc not in [0,1,2]:
 		bc = 0
