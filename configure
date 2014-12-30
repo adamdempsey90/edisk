@@ -2,3 +2,5 @@
 
 
 python config.py $1
+echo 'Created the defines.h file:'
+cat src/defines.h

@@ -98,6 +98,7 @@ void output_params(void) {
 		\tsigma index = %lg\n \
 		\tMdisk = %lg\n \
 		\trot index =  %lg\n \
+		\tself grav soft =  %lg\n \
 		\t# Initial Eccentricity #\n \
 		\tinitial e = %lg\n \
 		\tinital a.o.p = %lg\n \
@@ -124,6 +125,7 @@ void output_params(void) {
 		Params->indsig,
 		Params->Mdisk,
 		Params->q,
+		Params->eps_sg,
 		Params->e0,
 		Params->w0,
 		Params->rs,

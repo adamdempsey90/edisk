@@ -2,7 +2,7 @@
 
 void user_ic(Mode *fld);
 void calc_cmax(Mode *fld);
-void init_fld(Mode *fld) {
+int init_fld(Mode *fld) {
 	int i;
 	double dr = Params->dr;
 	double r,lr;
@@ -13,10 +13,10 @@ void init_fld(Mode *fld) {
 	
 	fld->m = Params->m;
 	
-#ifdef OPENMP
-        #pragma omp parallel private(i,r,lr) shared(fld)
-        #pragma omp for schedule(static)
-#endif
+// #ifdef OPENMP
+//         #pragma omp parallel private(i,r,lr) shared(fld)
+//         #pragma omp for schedule(static)
+// #endif
 	for(i=0;i<NTOT;i++) {
 		lr = (Params->rmin) + (.5 + i -NG ) * dr;
 		fld->lr[i] = lr;
@@ -41,10 +41,10 @@ void init_fld(Mode *fld) {
 		Params->nus[i] = (Params->alpha_s)*(Params->hor[i])*(Params->hor[i])*(bfld->omk[i])*r*r;
 		Params->nub[i] = (Params->alpha_b)*(Params->hor[i])*(Params->hor[i])*(bfld->omk[i])*r*r;
 		
-// 		bfld->omk[i] *= sqrt( 1 + (Params->hor[i])*(Params->hor[i])*(Params->indsig));
-// 		
-//  		bfld->dlomk[i] += 
-//  				(1-pow((Params->om0)*pow(r,Params->q)/(bfld->omk[i]),2))*(Params->indfl);
+		bfld->omk[i] *= sqrt( 1 + (Params->hor[i])*(Params->hor[i])*(Params->indsig));
+		
+ 		bfld->dlomk[i] += 
+ 				(1-pow((Params->om0)*pow(r,Params->q)/(bfld->omk[i]),2))*(Params->indfl);
 			
 		bfld->v[i] = r * (bfld->omk[i]);
 		bfld->u[i] = 0;
@@ -52,19 +52,36 @@ void init_fld(Mode *fld) {
 		fld->u[i] = 0;
 		fld->v[i] = 0;
 		fld->sig[i] = 0;
+#ifdef SELFGRAV
+		fld->phi_sg[i] = 0;
+		fld->gr_sg[i] = 0;
+		fld->gp_sg[i] = 0;
+#endif
 	}
 	Params->indnus = 2 *(Params->indfl) + Params->q + 2;
 	Params->indnub = 2 *(Params->indfl) + Params->q + 2;
 	
 	calc_cmax(fld);
-	
-	user_ic(fld);
 
+#ifdef RESTART
+	printf("Reading restart file...\n");
+	int restart_status = restart(fld);	
+	if (restart_status == -1) return -1;
+#else
+	user_ic(fld);
+#endif
 #if defined(INDIRECT) || defined(COMPANION)	
 	init_star(fld);
 #endif
-	
-	return;
+
+#ifdef SELFGRAV
+	printf("Initializing self gravity\n");
+	init_poisson(fld->m,fld->r);
+	printf("Solving for self gravity based on i.c \n");
+	poisson(fld);
+	output_selfgrav(fld);
+#endif	
+	return 0;
 }
 
 void user_ic(Mode *fld) {

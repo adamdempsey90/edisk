@@ -29,6 +29,16 @@ void alloc_fld(Mode *fld) {
 	fld->lr = (double *)malloc(sizeof(double)*NTOT);
 	if (fld->lr == NULL) malloc_err("lr");
 	
+#ifdef SELFGRAV
+	fld->phi_sg = (double complex *)malloc(sizeof(double complex)*NR);
+	if (fld->phi_sg == NULL) malloc_err("phi_sg");
+	fld->gr_sg = (double complex *)malloc(sizeof(double complex)*NR);
+	if (fld->gr_sg == NULL) malloc_err("gr_sg");
+	fld->gp_sg = (double complex *)malloc(sizeof(double complex)*NR);
+	if (fld->gp_sg == NULL) malloc_err("gp_sg");
+#endif	
+	
+	
 	bfld->u = (double *)malloc(sizeof(double)*NTOT);
 	if (bfld->u == NULL) malloc_err("vxbar");	
 
@@ -65,6 +75,12 @@ void alloc_fld(Mode *fld) {
 	if (cstar->gr == NULL) malloc_err("gr");
 	cstar->gp = (double complex *)malloc(sizeof(double complex)*NR);
 	if (cstar->gp == NULL) malloc_err("gp");
+	
+	
+
+	
+	
+	
 	return;
 }
 
@@ -78,6 +94,13 @@ void free_fld(Mode *fld) {
 	free(fld->r);
 	free(fld->lr);
 	
+#ifdef SELFGRAV
+	free(fld->phi_sg);
+	free(fld->gr_sg);
+	free(fld->gp_sg);
+#endif
+
+
 	free(fld);
 	
 	free(bfld->u);
@@ -100,6 +123,8 @@ void free_fld(Mode *fld) {
 	free(cstar->gp);
 	free(cstar->gr);
 	free(cstar);
+
+
 
 	return;
 }

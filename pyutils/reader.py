@@ -38,7 +38,7 @@ class Field():
 			self.omk0 = self.omk0[NG:-NG]
 			self.dbar = self.dbar[NG:-NG]
 			self.E = self.E[NG:-NG]
-			
+			self.nr -= 2*NG
 			
 #		self.E = (abs(real(self.E))>etol).astype('int')*real(self.E) \
 #				+1j*(abs(imag(self.E))>etol).astype('int') * imag(self.E)
@@ -273,9 +273,14 @@ class Field():
 			
 			
 		figure();	
+		size_x = abs(x).max()
+		size_y = abs(y).max()
+		xlim((-size_x,size_x))
+		ylim((-size_y,size_y))
+		plot([0],[0],'b*')
 		for i in range(self.nr)[::self.nr/num_ellipse]:
 			plot(x[:,i],y[:,i],'-k')
-			
+				
 		return x,y
 	
 	def plotdens(self,Nph=200,starpos=(0,0)):

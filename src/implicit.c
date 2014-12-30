@@ -19,7 +19,7 @@ void get_matrices(int indx, double dt, double r, double m, double nu, double nub
 							double dlomk, double complex ul, double complex uc, 
 							double complex ur, double complex vl, double complex vc,
 							double complex vr, double complex sl, double complex sc, 
-							double complex sr);
+							double complex sr, Mode *fld);
 							
 void cn_solver_init(void);
 void cn_solver_free(void);
@@ -45,7 +45,7 @@ void cranknicholson_step(double dt, double t, Mode *fld) {
 							Params->c2[i],bfld->omk[i],bfld->dlomk[i],
 							fld->u[i-1],fld->u[i],fld->u[i+1],
 							fld->v[i-1],fld->v[i],fld->v[i+1],
-							fld->sig[i-1],fld->sig[i],fld->sig[i+1]);
+							fld->sig[i-1],fld->sig[i],fld->sig[i+1],fld);
 		}
 		else {
 		
@@ -112,7 +112,8 @@ void get_matrices(int indx, double dt, double r, double m, double nus, double nu
 						    double c, double omk, double dlomk, 
 							double complex ul,double complex uc, double complex ur, 
 							double complex vl, double complex vc, double complex vr, 
-							double complex sl, double complex sc, double complex sr) 
+							double complex sl, double complex sc, double complex sr,
+							Mode *fld) 
 {
 /* Fill the A,B,C,K matrices 
 	A = Main Diagonal
@@ -272,7 +273,10 @@ void get_matrices(int indx, double dt, double r, double m, double nus, double nu
 	F[1] += cstar->gp[indx];
 #endif
 	
-
+#ifdef SELFGRAV
+	F[0] += fld->gr_sg[indx];
+	F[1] += fld->gp_sg[indx];
+#endif
 
 // Don't evolve sigma	
 // 	F[2] = 0;

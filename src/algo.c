@@ -180,6 +180,10 @@ void algogas(double t,Mode *fld) {
 		fld->dtu[it] += cstar->gr[it];
 #endif
 
+#ifdef SELFGRAV
+		fld->dtu[it] += fld->gr_sg[it];
+#endif
+
 /* v eom */
 
 
@@ -201,6 +205,10 @@ void algogas(double t,Mode *fld) {
 /* Stellar Potential indirect term */
 #if defined(INDIRECT) || defined(COMPANION)
 		fld->dtu[it] += cstar->gp[it];
+#endif
+
+#ifdef SELFGRAV
+		fld->dtv[it] += fld->gp_sg[it];
 #endif
 
 /* sig eom */

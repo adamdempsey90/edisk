@@ -21,6 +21,7 @@ void read_inputs(char *inputdir) {
 			sig0,
 			indsig,
 			q,
+			eps_sg,
 			e0,
 			w0,
 			rs,
@@ -53,6 +54,7 @@ void read_inputs(char *inputdir) {
 	fscanf(f,"sigma0 =  %lg \n",&sig0);
 	fscanf(f,"sigma index =  %lg \n",&indsig);
 	fscanf(f,"rot index =  %lg \n",&q);
+	fscanf(f,"self grav soft =  %lg \n",&eps_sg);
 	fgets(garbage,sizeof(garbage),f);	// Initial Eccentricty
 	fscanf(f,"initial e = %lg \n",&e0);
 	fscanf(f,"initial a.o.p = %lg \n",&w0);
@@ -80,6 +82,7 @@ void read_inputs(char *inputdir) {
 	Params->sig0 = sig0;
 	Params->indsig = indsig;
 	Params->q = q;
+	Params->eps_sg = eps_sg;
 	Params->e0 = e0;
 	Params->w0 = w0;
 	Params->rs = rs;
@@ -122,6 +125,7 @@ void read_inputs(char *inputdir) {
 		\tsigma index = %lg\n \
 		\tMdisk = %lg\n \
 		\trot index =  %lg\n \
+		\tself grav soft =  %lg\n \
 		\t# Initial Eccentricity #\n \
 		\tinitial e = %lg\n \
 		\tinital a.o.p = %lg\n \
@@ -148,6 +152,7 @@ void read_inputs(char *inputdir) {
 		Params->indsig,
 		Params->Mdisk,
 		Params->q,
+		Params->eps_sg,
 		Params->e0,
 		Params->w0,
 		Params->rs,

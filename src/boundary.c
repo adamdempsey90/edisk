@@ -25,10 +25,10 @@ void set_bc(Mode *fld) {
 #else
 
 		
-		fld->u[i] = fld->u[istart];
+		fld->u[i] = -abs(fld->u[istart]);
 		fld->v[i] = fld->v[istart];
 		fld->sig[i] = fld->sig[istart];
-		fld->u[i+iend] = fld->u[iend-1];
+		fld->u[i+iend] = abs(fld->u[iend-1]);
 		fld->v[i+iend] = fld->v[iend-1];
 		fld->sig[i+iend] = fld->sig[iend-1];
 			
@@ -130,8 +130,8 @@ void user_bc(Mode *fld) {
 //	fld->v[0] = -(fld->v[1]);
 	
 	
-	fld->u[iend] = u_out_bc;
-	fld->v[iend] = v_out_bc;
+//	fld->u[iend] = u_out_bc;
+//	fld->v[iend] = v_out_bc;
 
 
 //	fld->sig[iend] = s_out_bc;

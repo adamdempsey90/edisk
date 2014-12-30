@@ -33,8 +33,11 @@ int main(int argc, char *argv[]) {
 	read_inputs(inputdir);
 	
 	alloc_fld(fld);
-	init_fld(fld);
-
+	int restart_status = init_fld(fld);
+	if (restart_status == -1) {
+		printf("Exiting...\n");
+		Params->endt = -1;
+	}
 	
 	init_output(Params->outdir);
 
@@ -93,8 +96,9 @@ int main(int argc, char *argv[]) {
 		}
 		dt = t-dt;
 		avgdt += dt;
+#ifdef VERBOSE		
 		MPI_Printf ("\t step #%d, step size = %.5e, at t=%.5e \n", numstep,dt, t);
-   
+#endif  
 #if defined(WAVEKILLBC) || defined(KILLIN) || defined(KILLOUT)
 		wavekillbc(fld,dt);
 #endif
@@ -127,6 +131,10 @@ int main(int argc, char *argv[]) {
 
 #ifdef SPLIT
 	free_rktvd();
+#endif
+
+#ifdef SELFGRAV
+	free_poisson();
 #endif
 
    	free_fld(fld);

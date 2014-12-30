@@ -10,12 +10,18 @@ def create_defines_file():
 		for x in temp:
 			if x[0] == '' and '#' not in x:
 				defs.append(x[-1].split('\n')[0])
-		with open('src/defines.h','w') as g:
-			if x!= []:
-				for x in defs:
-					g.write('#define ' + x + '\n')
-			else:
-				g.write('\n')
+	with open('src/defines.h','w') as g:
+		if defs != []:
+			for x in defs:
+				g.write('#define ' + x + '\n')
+		else:
+			g.write('\n')
+		if 'SELFGRAV2D' in defs and 'INFINITE' in defs:
+			g.write('#define NEQNS 4\n')
+		else:
+			g.write('#define NEQNS 3\n')
+	
+				
 	return defs			
 
 def generate_extra_files(defs):
@@ -51,8 +57,14 @@ def generate_extra_files(defs):
 	
 	if 'COMPANION' in defs:
 		algfile += ' companion.c'	
+		
+	if 'SELFGRAV' in defs:
+		algfile += ' poisson.c'
 	
-	print 'Adding ', algfile, ' to the Makefile'
+	if 'SELFGRAV2D' in defs:
+		algfile += ' poisson2d.c'
+	
+	print 'Adding ', algfile, 'to the Makefile'
 	return algfile
 
 

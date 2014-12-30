@@ -15,7 +15,16 @@ int algo_driver( double *h, double *t, Mode *fld) {
 #ifdef SPLIT	
 	rktvd_step(*h,*t,fld); 
 #endif
+
+
 	cranknicholson_step(*h,*t,fld);
+
+#ifdef SELFGRAV
+	poisson(fld);
+#ifdef INFINITE
+	cranknicholson_step(*h,*t,fld);
+#endif
+#endif
 
 	*t += *h;
 

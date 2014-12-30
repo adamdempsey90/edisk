@@ -32,6 +32,10 @@ typedef struct Mode {
 	double *r, *lr;
 	double complex *dtu,*dtv,*dts;
 
+#ifdef SELFGRAV
+	double complex *phi_sg, *gr_sg, *gp_sg;
+#endif
+
 } Mode;
 
 typedef struct Bmode {
@@ -56,6 +60,7 @@ typedef struct Parameters {
 			Mdisk,
 			om0,
 			q,
+			eps_sg,
 			e0,
 			w0,
 			rs,
@@ -91,7 +96,7 @@ typedef struct Star {
 typedef void (*rhsfunc)(double , double complex *, double complex *, Mode *);
 
 
-void init_fld(Mode *fld);
+int init_fld(Mode *fld);
 void init_output(char *dir);
 void output_params(void);
 void output(Mode *fld);
@@ -106,7 +111,7 @@ void output_disk(double *lr, double *r);
 void output_rhs(Mode *fld);
 void set_bc(Mode *fld);
 void wavekillbc(Mode *fld,double dt);
-
+int restart(Mode *fld);
 
 void matmat(double complex *A, double complex *B, double complex *C, 
 					double complex alpha, double complex beta);
@@ -115,6 +120,7 @@ void matvec(double complex *A, double complex *B, double complex *C,
 					double complex alpha, double complex beta);
 void matsolve(double complex *A, double complex *B);
 
+double bessk0(double x);
 
 #if defined(IMPLICIT) || defined(SPLIT)
 
@@ -140,6 +146,14 @@ void free_rktvd(void);
 
 #if defined(INDIRECT) || defined(COMPANION)
 void init_star(Mode *fld);
+#endif
+
+
+#ifdef SELFGRAV
+void init_poisson(double m, double *r);
+void free_poisson(void);
+void poisson(Mode *fld);
+void output_selfgrav(Mode *fld);
 #endif
 
 
