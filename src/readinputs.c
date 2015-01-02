@@ -25,6 +25,8 @@ void read_inputs(char *inputdir) {
 			e0,
 			w0,
 			rs,
+			init_star_rad,
+			init_star_phi,
 			ms,
 			oms,
 			t0,
@@ -61,6 +63,8 @@ void read_inputs(char *inputdir) {
 	fgets(garbage,sizeof(garbage),f);	// Star Parameters
 	fscanf(f,"rsoft =  %lg \n",&rs);
 	fscanf(f,"Ms =  %lg \n",&ms);
+	fscanf(f,"initial rad =  %lg \n",&init_star_rad);
+	fscanf(f,"initial phi =  %lg \n",&init_star_phi);
 	fgets(garbage,sizeof(garbage),f);	// Time Parameters
 	fscanf(f,"t0 =  %lg \n",&t0);
 	fscanf(f,"tau =  %lg \n",&tau);
@@ -87,6 +91,8 @@ void read_inputs(char *inputdir) {
 	Params->w0 = w0;
 	Params->rs = rs;
 	Params->ms = ms;
+	Params->init_star_rad = init_star_rad;
+	Params->init_star_phi = init_star_phi;
 	Params->t0 = t0;
 	Params->tau = tau;
 	Params->endt = endt;
@@ -132,6 +138,8 @@ void read_inputs(char *inputdir) {
 		\t# Star Parameters	#\n \
 		\trsoft = %lg\n \
 		\tMs = %lg\n \
+		\tinitial rad = %lg\n \
+		\tinitial phi = %lg\n \
 		\t# Time Parameters	#\n \
 		\tt0 = %lg\n \
 		\ttau = %lg\n \
@@ -157,6 +165,8 @@ void read_inputs(char *inputdir) {
 		Params->w0,
 		Params->rs,
 		Params->ms,
+		Params->init_star_rad,
+		Params->init_star_phi,
 		Params->t0,
 		Params->tau,
 		Params->endt,

@@ -1,95 +1,80 @@
 #include "edisk.h"
 
 
-void starint(double q,double m,int Nph, double *grval, double *gpval);
-double grintegrand(double q, double m, double phi);
-double gpintegrand(double q, double m, double phi);
-void output_star(double *r);
-
-void init_star(Mode *fld) {
-	int i,it;
-	double r,rsoft;
-	double grval,gpval;
-	double indsig = Params->indsig;
-	double sig0  = Params->sig0;
-	double ri =fld->r[istart];
-	double ro = fld->r[iend-1];
+void init_CentralStar(Mode *fld) {
+	CentralStar->ms = 1;
+	CentralStar->oms = 0;
+	CentralStar->r = Params->init_star_rad;
+	CentralStar->phi = Params->init_star_phi;
+	CentralStar->x = (CentralStar->r)*cos(CentralStar->phi);
+	CentralStar->y = (CentralStar->r)*sin(CentralStar->phi);
 	
-	if (Params->indsig != -3) {
-		cstar->r = 2*M_PI*sig0 * (pow(ro,indsig+3)-pow(ri,indsig+3)) / (indsig+3); 
+	calc_star_accel(fld);
+	return;
+}
+
+
+void calc_star_pos(Mode *fld) {
+	int i,indx0,indx1;
+	double complex k1, k2;
+	double dr = Params->dr;
+	
+	CentralStar->rc = 0;
+	for(i=0;i<NR-1;i++) {
+		indx0 = i + istart;
+		indx1 = i + 1 + istart;
+		k1 = (fld->r[indx0])*(fld->r[indx0])*(fld->r[indx0])*
+						(bfld->sig[indx0])*(fld->sig[indx0]);
+	
+		k2 = (fld->r[indx1])*(fld->r[indx1])*(fld->r[indx1])*
+						(bfld->sig[indx1])*(fld->sig[indx1]);
+		
+		CentralStar->rc += k1+k2;
+	}
+	CentralStar->rc *= -M_PI*dr;
+	
+	CentralStar->x = creal(CentralStar->rc) / (CentralStar->ms);
+	CentralStar->y = cimag(CentralStar->rc) / (CentralStar->ms);
+	CentralStar->r = sqrt( (CentralStar->x)*(CentralStar->x) 
+							+  (CentralStar->y)*(CentralStar->y));
+	CentralStar->phi = atan2(CentralStar->y,CentralStar->x);
+	return;
+}
+void calc_star_accel(Mode *fld) {
+	int i;
+	double r;	
+	for(i=0;i<NR;i++) {
+		r = (fld->r[i+istart]) * sqrt( 1 + (Params->rs)*(Params->hor[i+istart])
+											*(Params->rs)*(Params->hor[i+istart]));
+											
+		
+		CentralStar->gr[i] = -(CentralStar->x)/(r*r*r) 
+							*(1 + .75*(CentralStar->r)*(CentralStar->r)/(r*r));
+		CentralStar->gp[i] = -.5*I*(CentralStar->x)/(r*r*r)
+							*( 1 + .375*(CentralStar->r)*(CentralStar->r)/(r*r));
+							
+	}
+	
+	return;
+}
+
+void output_CentralStar(double t, int firstopen) {
+	FILE *f;
+	char fname[STRLEN];
+	strcpy(fname,Params->outdir);
+	strcat(fname,"CentralStar.dat");
+	if (firstopen==0) {
+		f = fopen(fname,"w");
+		fprintf(f,"# t \t x \t y \t r \t phi\n");
 	}
 	else {
-		cstar->r = 2*M_PI*sig0 * log(ro/ri);
+		f = fopen(fname,"a");
 	}
-	
-	Params->oms = (Params->om0) * pow(cstar->r,-1.5);
-	
-	MPI_Printf("\n\nStar at radius: %lg, with rotation rate: %lg\n",cstar->r,Params->oms);
-	for(i=istart;i<iend;i++) {
-		it = i - istart;
-		r = fld->r[i];
-		rsoft = sqrt(Params->rs*Params->rs + r*r);
-		
-		starint(cstar->r/rsoft,fld->m,2000,&grval,&gpval);
-		cstar->gr[it] = (-2*(cstar->r)	* r *pow(rsoft,-4)) * grval;		
-		cstar->gp[it] = (I*(fld->m) * 2 / (rsoft*rsoft)) * gpval; 
-	}
-	
-	output_star(fld->r);
-	return;
-
-}
-
-
-void starint(double q,double m,int Nph, double *grval, double *gpval) {
-	double kr1,kr2,kr3,kr4;
-	double kp1,kp2,kp3,kp4;
-	double phi=0;
-	double h = M_PI/Nph;
-	*grval = 0;
-	*gpval = 0;
-	
-	while (phi < M_PI) {
-		kr1 = grintegrand(q,m,phi);
-		kp1 = gpintegrand(q,m,phi);
-
-		kr2 = grintegrand(q,m,phi+.5*h);
-		kp2 = gpintegrand(q,m,phi+.5*h);
-		kr3 = grintegrand(q,m,phi+.5*h);
-		kp3 = gpintegrand(q,m,phi+.5*h);
-		kr4 = grintegrand(q,m,phi+h);
-		kp4 = gpintegrand(q,m,phi+h);
-		*grval += (h/6.) * ( kr1 + 2*kr2 + 2*kr3 + kr4);
-		*gpval += (h/6.) * ( kp1 + 2*kp2 + 2*kp3 + kp4);
-		phi += h;
-	}
-	
-	return;
-}
-
-
-double grintegrand(double q, double m, double phi) {
-	return cos(m*phi)*(cos(phi) + q) * pow(1+q*q+2*q*cos(phi),-1.5);
-}
-double gpintegrand(double q, double m, double phi) {
-	return cos(m*phi)*pow(1+q*q+2*q*cos(phi),-.5);
-}
-
-void output_star(double *r) {
-	int i;
-	char fname[100];
-	strcpy(fname,Params->outdir);
-	strcat(fname,"star.dat");
-	FILE *f = fopen(fname,"w");
-	for(i=0;i<NR;i++) {
-		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\n",
-		r[i+istart],
-		creal(cstar->gr[i]),
-		cimag(cstar->gr[i]),
-		creal(cstar->gp[i]),
-		cimag(cstar->gp[i]));
-	}
+	fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\n",
+				t,CentralStar->x,CentralStar->y,CentralStar->r,CentralStar->phi);
 	fclose(f);
+	printf("\t\t\tSTAR POS x=%lg\ty=%lg\tr=%lg\tphi=%lg\n",
+				CentralStar->x,CentralStar->y,CentralStar->r,CentralStar->phi);
 	return;
 
 }

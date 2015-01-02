@@ -272,6 +272,11 @@ void get_matrices(int indx, double dt, double r, double m, double nus, double nu
 	F[0] += cstar->gr[indx];
 	F[1] += cstar->gp[indx];
 #endif
+
+#ifdef INDIRECT 
+	F[0] += CentralStar->gr[indx];
+	F[1] += CentralStar->gp[indx];
+#endif
 	
 #ifdef SELFGRAV
 	F[0] += fld->gr_sg[indx];

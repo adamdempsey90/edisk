@@ -1,5 +1,6 @@
 class Field():
 	def __init__(self,t,outdir='',loadghost=False,loadrhs=False,rhsnum=0,NG=1,etol=1e-8):	
+		self.outdir = outdir
 		disk = loadtxt(outdir+'disk.dat')
 		self.r = disk[:,0]
 		self.nlr = disk[:,1]
@@ -11,6 +12,7 @@ class Field():
 		self.nus = disk[:,4]
 		self.nub = disk[:,5]
 		self.nu = self.nus + self.nub
+		self.Q = disk[:,6]
 		dat = loadtxt(outdir + 'output_'+str(t)+'.dat')
 		self.u = dat[:,2]+1j*dat[:,3]
 		self.v = dat[:,4] + 1j*dat[:,5]
@@ -27,6 +29,7 @@ class Field():
 			self.nlr = self.nlr[NG:-NG]
 			self.hor = self.hor[NG:-NG]
 			self.c2 = self.c2[NG:-NG]
+			self.Q = self.Q[NG:-NG]
 			self.nus = self.nus[NG:-NG]
 			self.nub = self.nub[NG:-NG]
 			self.nu = self.nu[NG:-NG]
@@ -68,14 +71,26 @@ class Field():
 			self.dtu = 0
 			self.dtv = 0
 			self.dts = 0
-	def plot(self,q,linestyle='-',logr=True,Nph=200,xnorm=0,ynorm=0):
+		
+		try:
+			starpos = loadtxt(outdir + 'CentralStar.dat')
+			try:
+				(self.xstar,self.ystar,self.rstar,self.phistar) = starpos[t,1:]
+			except:	
+				(self.xstar,self.ystar,self.rstar,self.phistar)= (0,0,0,0)	
+		except:
+			(self.xstar,self.ystar,self.rstar,self.phistar)= (0,0,0,0)
+			
+		
+		
+	def plot(self,q,linestyle='-',logr=True,Nph=500,xnorm=0,ynorm=0):
 	
-		if q not in ['u','v','sig','E','nu','c2','hor','omk','dbar','vybar','dtu','dtv','dts','e','w','ex','ey'] \
-		and q not in ['vx','vy','vyp','dens']:
+		if q not in ['u','v','sig','E','nu','c2','hor','Q','omk','dbar','vybar','dtu','dtv','dts','e','w','ex','ey'] \
+		and q not in ['vr','vph','vphp','dens','densp']:
 			print 'Not Valid Variable Name'
 			return
 		
-		if q in ['vx','vy','vyp','dens']:
+		if q in ['vr','vph','vphp','dens','densp']:
 			phi = linspace(-pi,pi,Nph)
 			x = zeros((len(fld.nlr),Nph))
 			y = zeros((len(fld.nlr),Nph))
@@ -159,6 +174,12 @@ class Field():
 			ax.plot(r,self.hor,linestyle)
 			ax.set_xlabel(xname)
 			
+		if q=='Q':	
+			fig,ax = subplots()
+			ax.set_title('$Q$')
+			ax.plot(r,self.Q,linestyle)
+			ax.set_xlabel(xname)
+			
 		if q=='E':
 			fig,(ax1,ax2,ax3,ax4)=subplots(4,sharex=True)
 			ax1.set_title('Eccentricity')
@@ -220,40 +241,46 @@ class Field():
 			ax2.set_ylabel('Im(dts)')	
 			ax2.set_xlabel(xname)
 		
-		if q in ['vx','vy','vyp','dens']:
-			if q == 'dens':	
-				dens = zeros((len(fld.nlr),Nph))	
+		if q in ['vr','vph','vphp','dens','densp']:
+			if q in ['dens','densp']:	
 				for i in range(Nph):
-					dens[:,i] = fld.dbar*(1 + 2*real(fld.sig*exp(-1j*phi[i])))
-					dat[:,i] = dens[:,i]/fld.dbar - 1;		
-			if q == 'vx':
+					dat[:,i] = fld.dbar*(1 + 2*real(fld.sig*exp(-1j*phi[i])))
+					if q=='dens':
+						tstr='$<\\Sigma>$'
+					else:
+						dat[:,i] = dat[:,i]/fld.dbar - 1;	
+						tstr='$\\Delta \\Sigma / <	\\Sigma > $'
+						
+			if q == 'vr':
 				for i in range(Nph):
 					dat[:,i] = 2*real(fld.u*exp(-1j*phi[i]))
-	
-			if q == 'vy':
+				tstr='$v_r$'
+			if q == 'vph':
 				for i in range(Nph):
 					dat[:,i] = 2*real(fld.v*exp(-1j*phi[i])) + fld.vyb
-	
-			if q == 'vyp':
+				tstr='$v_\\phi$'
+			if q == 'vphp':
 				for i in range(Nph):
 					dat[:,i] = 2*real(fld.v*exp(-1j*phi[i]))
-
+				tstr='$\\Delta v_\\phi$'
 
 			figure()
 			pcolormesh(x,y,dat)
 			colorbar()
-			title(q)
+			plot(fld.xstar,fld.ystar,'k*',markersize=10)
+			plot(0,0,'k.')
+			title(tstr)
 			xlabel('x')
 			ylabel('y')
 		
 	
-	
+		
 		show()
 		
 		
 		
 		
-	def draw_ellipse(self,num_ellipse,(xc,yc)=(0,0),Nph=200):
+	def draw_ellipse(self,num_ellipse,(xc,yc)=(0,0),Nph=500):
 		pgrid = linspace(0,2*pi,Nph)
 		# (Np , Nr)		
 		
@@ -277,13 +304,13 @@ class Field():
 		size_y = abs(y).max()
 		xlim((-size_x,size_x))
 		ylim((-size_y,size_y))
-		plot([0],[0],'b*')
+		plot(self.xstar,self.ystar,'k*',markersize=10)
 		for i in range(self.nr)[::self.nr/num_ellipse]:
 			plot(x[:,i],y[:,i],'-k')
 				
 		return x,y
 	
-	def plotdens(self,Nph=200,starpos=(0,0)):
+	def plotdens(self,Nph=500,starpos=(0,0)):
 		phi = linspace(-pi,pi,Nph)
 		dens = zeros((len(fld.nlr),Nph))	
 		densp = zeros((len(fld.nlr),Nph))
@@ -302,7 +329,7 @@ class Field():
 		return
 		
 def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None,logr=True):
-	if q not in ['u','v','sig','E','e','w','ex','ey']:
+	if q not in ['u','v','sig','E','e','w','ex','ey','star']:
 		print 'Not Valid Variable Name'
 		return
 		
@@ -329,7 +356,7 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None,logr=True):
 			if q=='ex':
 				dat[:,i] = real(fld.E)
 			if q=='ey':
-				dat[:,i] = imag(fld.E)
+				dat[:,i] = imag(fld.E)				
 	
 	if logr:
 		r = fld0.r
@@ -452,11 +479,21 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None,logr=True):
 			
 			fig.canvas.draw()
 	
-	
+	if q=='star':
+		dat = loadtxt(fld0.outdir + 'CentralStar.dat')
+		fig = figure()
+		ax = fig.add_subplot(111)
+		ax.set_title('Star Position')
+		ax.set_xlabel('x')
+		ax.set_ylabel('y')
+		
+		ax.plot(dat[:,1],dat[:,2],'-*')
+		show()
+					
 	return dat,fld0		
 	
 
-def animate_ellipse(t,num_ellipse,(xc,yc)=(0,0),Nph=200):
+def animate_ellipse(t,num_ellipse,(xc,yc)=(0,0),Nph=500):
 		
 		
 	if fld0==None:
@@ -503,8 +540,8 @@ def animate_ellipse(t,num_ellipse,(xc,yc)=(0,0),Nph=200):
 			ax2.set_ylim(l2range)
 			fig.canvas.draw()
 
-
-def animate_real(q,t,xlims=None,ylims=None,Nph=200):
+	
+def animate_real(q,t,xlims=None,ylims=None,Nph=500):
 
 	if q not in ['dens','vx','vy','E']:
 		print 'Not Valid Variable Name'
@@ -560,7 +597,7 @@ def compare(q,fld_list,logr=True,linestyle='-'):
 		r = [fld.r for fld in fld_list]
 		xname = '$\ln r$'
 	else:
-		r = [fld.nlrr for fld in fld_list]		
+		r = [fld.nlr for fld in fld_list]		
 		xname = '$r$'
 	
 	

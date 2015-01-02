@@ -70,13 +70,23 @@ void alloc_fld(Mode *fld) {
 	if (Params->c2 == NULL) malloc_err("c2");
 	
 	
-	
+#ifdef COMPANION
+	cstar = (Star *)malloc(sizeof(Star));
+	if (cstar == NULL) malloc_err("cstar");
 	cstar->gr = (double complex *)malloc(sizeof(double complex)*NR);
-	if (cstar->gr == NULL) malloc_err("gr");
+	if (cstar->gr == NULL) malloc_err("gr_c");
 	cstar->gp = (double complex *)malloc(sizeof(double complex)*NR);
-	if (cstar->gp == NULL) malloc_err("gp");
-	
-	
+	if (cstar->gp == NULL) malloc_err("gp_c");
+#endif	
+
+#ifdef INDIRECT
+	CentralStar = (Star *)malloc(sizeof(Star));
+	if (CentralStar == NULL) malloc_err("CentralStar");
+	CentralStar->gr = (double complex *)malloc(sizeof(double complex)*NR);
+	if (CentralStar->gr == NULL) malloc_err("gr_central");
+	CentralStar->gp = (double complex *)malloc(sizeof(double complex)*NR);
+	if (CentralStar->gp == NULL) malloc_err("gp_central");
+#endif
 
 	
 	
@@ -119,12 +129,17 @@ void free_fld(Mode *fld) {
 	free(Params->c2);
 	free(Params);
 
-
+#ifdef COMPANION
 	free(cstar->gp);
 	free(cstar->gr);
 	free(cstar);
+#endif
 
-
+#ifdef INDIRECT
+	free(CentralStar->gp);
+	free(CentralStar->gr);
+	free(CentralStar);
+#endif
 
 	return;
 }

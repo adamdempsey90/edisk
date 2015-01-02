@@ -8,7 +8,7 @@ double dbfunc(double h, double a, double m, double r);
 double laplace(double a, double m, double r);
 double dlaplace(double a, double m, double r);
 void output_companion(double *lr, double *r);
-void init_star(Mode *fld) {
+void init_cstar(Mode *fld) {
 	int i;
 	double r;
 	double grfac;
@@ -105,7 +105,7 @@ double dbfunc(double h, double a, double m, double r) {
 
 void output_companion(double *lr,double *r) {
 	int i;
-	char fname[100];
+	char fname[STRLEN];
 	strcpy(fname,Params->outdir);
 	strcat(fname,"companion.dat");
 	FILE *f = fopen(fname,"w");

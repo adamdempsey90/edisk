@@ -21,10 +21,17 @@ int algo_driver( double *h, double *t, Mode *fld) {
 
 #ifdef SELFGRAV
 	poisson(fld);
-#ifdef INFINITE
-	cranknicholson_step(*h,*t,fld);
+// #ifdef INFINITE
+// 	cranknicholson_step(*h,*t,fld);
+// #endif
 #endif
+#ifdef INDIRECT
+	calc_star_pos(fld);
+	calc_star_accel(fld);
 #endif
+
+
+
 
 	*t += *h;
 

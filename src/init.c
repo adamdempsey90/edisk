@@ -70,10 +70,13 @@ int init_fld(Mode *fld) {
 #else
 	user_ic(fld);
 #endif
-#if defined(INDIRECT) || defined(COMPANION)	
-	init_star(fld);
+#ifdef COMPANION	
+	init_cstar(fld);
 #endif
-
+#ifdef INDIRECT	
+	init_CentralStar(fld);
+	output_CentralStar(Params->t0,0);
+#endif
 #ifdef SELFGRAV
 	printf("Initializing self gravity\n");
 	init_poisson(fld->m,fld->r);
@@ -92,19 +95,22 @@ void user_ic(Mode *fld) {
 	int i;
 	double e0 = Params->e0;
 	double w = Params->w0;
-	double lr, r;
+	double lr, r, ri, ro;
 	double complex E0;
 	double sigma = .05;
 	double r0 = -.2;
 	double aspect = (fld->lr[iend] - fld->lr[0]);
+	
+	ri = fld->r[istart];
+	ro = fld->r[iend-1];
 	for(i=0;i<NTOT;i++) {
 		lr = fld->lr[i];
 		r = fld->r[i];
-//		E0 = e0*cexp(I*w); //* cexp(I*drw*lr);
+		E0 = e0*cexp(I*w); //* cexp(I*drw*lr);
 		
-		E0 = e0 * cexp(I*w) * cos( .5*M_PI*(fld->r[iend-1] - r)/(fld->r[iend-1]-fld->r[istart]));
+//		E0 = E0 * cos( .5*M_PI*(fld->r[iend-1] - r)/(fld->r[iend-1]-fld->r[istart]));
 //		
-//		E0 = e0 * cexp(I*w) * exp(-(lr-r0)*(lr-r0)/(sigma*sigma));
+//		E0 = E0 * exp(-(lr-r0)*(lr-r0)/(sigma*sigma));
 //		E0 = 0;
 
 //		E0 = e0 * cexp(I*w) * (lr - fld->lr[0]) / aspect;
@@ -112,6 +118,7 @@ void user_ic(Mode *fld) {
 		fld->v[i] = .5*(bfld->v[i])*E0;	
 //		fld->sig[i] = (fld->u[i] + (fld->u[i+1] - fld->u[i-1])/(Params->dr) 
 //					- I*(fld->m)*(fld->v[i]))/(I*(Params->m)*bfld->v[i]);
+//		fld->sig[i] = .001*sin(M_PI * ( r - ri)/(ro-ri));
 		fld->sig[i] = 0;
 	}
 

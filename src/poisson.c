@@ -1,5 +1,4 @@
 #include "edisk.h"
-#define STRLEN 100
 
 double *Kernel;
 

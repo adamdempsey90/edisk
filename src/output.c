@@ -4,7 +4,6 @@
 #else
 #define UNLOG(a) exp(a)
 #endif
-#define STRLEN 100
 /* Option to write output in real space or complex space */
 
 void write_header(FILE *f);
@@ -105,6 +104,8 @@ void output_params(void) {
 		\t# Star Parameters	#\n \
 		\trsoft = %lg\n \
 		\tMs = %lg\n \
+		\tinitial rad = %lg\n \
+		\tinitial phi = %lg\n \
 		\t# Time Parameters	#\n \
 		\tt0 = %lg\n \
 		\ttau = %lg\n \
@@ -130,6 +131,8 @@ void output_params(void) {
 		Params->w0,
 		Params->rs,
 		Params->ms,
+		Params->init_star_rad,
+		Params->init_star_phi,
 		Params->t0,
 		Params->tau,
 		Params->endt,
@@ -148,15 +151,17 @@ void output_disk(double *lr,double *r) {
 	strcpy(fname,Params->outdir);
 	strcat(fname,"disk.dat");
 	FILE *f = fopen(fname,"w");
-	fprintf(f,"# logr \t r \t h/r \t c^2 \t nu_s \t nu_b \n");
+	fprintf(f,"# logr \t r \t h/r \t c^2 \t nu_s \t nu_b \t Q\n");
 	for(i=0;i<NTOT;i++) {
-		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
+		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
 		lr[i],r[i],
 		Params->hor[i],
 		Params->c2[i],
 		Params->nus[i],
-		Params->nub[i]);
+		Params->nub[i],
+		(Params->hor[i])/(M_PI*(bfld->sig[i])*r[i]*r[i]));
 	}
+	
 	fclose(f);
 	return;
 

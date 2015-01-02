@@ -28,8 +28,10 @@ void set_bc(Mode *fld) {
 		fld->u[i] = -abs(fld->u[istart]);
 		fld->v[i] = fld->v[istart];
 		fld->sig[i] = fld->sig[istart];
+//		fld->sig[i] = 0;
 		fld->u[i+iend] = abs(fld->u[iend-1]);
 		fld->v[i+iend] = fld->v[iend-1];
+//		fld->sig[i+iend] = 0;
 		fld->sig[i+iend] = fld->sig[iend-1];
 			
 // 		fld->u[i] = u_in_bc;

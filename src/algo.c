@@ -176,9 +176,14 @@ void algogas(double t,Mode *fld) {
 		fld->dtu[it] -=	(2.*nub/(3.*r))*(divv*nubsinds + dru - u/r + r*d2ru - I*m*drv+I*m*v/r);
  					
 /* Stellar Potential indirect term */
-#if defined(INDIRECT) || defined(COMPANION)
+#ifdef COMPANION
 		fld->dtu[it] += cstar->gr[it];
 #endif
+
+#ifdef INDIRECT
+		fld->dtu[it] += CentralStar->gr[it];
+#endif
+
 
 #ifdef SELFGRAV
 		fld->dtu[it] += fld->gr_sg[it];
@@ -203,8 +208,12 @@ void algogas(double t,Mode *fld) {
  					
 					
 /* Stellar Potential indirect term */
-#if defined(INDIRECT) || defined(COMPANION)
-		fld->dtu[it] += cstar->gp[it];
+#ifdef COMPANION
+		fld->dtv[it] += cstar->gp[it];
+#endif
+
+#ifdef INDIRECT
+		fld->dtv[it] += CentralStar->gp[it];
 #endif
 
 #ifdef SELFGRAV

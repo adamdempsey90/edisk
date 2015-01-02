@@ -1,9 +1,6 @@
 #include "edisk.h"
 
 
-#define STRLEN 100
-
-
 int restart(Mode *fld) {
 	int i;
 	FILE *f;

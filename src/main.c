@@ -18,7 +18,7 @@ int main(int argc, char *argv[]) {
 	bfld = (Bmode *)malloc(sizeof(Bmode));
 	Params = (Parameters *)malloc(sizeof(Parameters));
 
-	cstar = (Star *)malloc(sizeof(Star));
+	//cstar = (Star *)malloc(sizeof(Star));
 
 	
 	
@@ -31,15 +31,16 @@ int main(int argc, char *argv[]) {
 	else strcpy(inputdir,"inputs/");
 	printf("Reading Inputs from %s...\n",inputdir);
 	read_inputs(inputdir);
-	
+	init_output(Params->outdir);
 	alloc_fld(fld);
+	
 	int restart_status = init_fld(fld);
 	if (restart_status == -1) {
 		printf("Exiting...\n");
 		Params->endt = -1;
 	}
 	
-	init_output(Params->outdir);
+	
 
 
 #if defined(IMPLICIT) || defined(SPLIT)
@@ -90,7 +91,7 @@ int main(int argc, char *argv[]) {
 		int status = rk45_step_apply(&algo,fld,&t,&h);
 #endif		
 		numstep++;
-		 if (status == -1) {
+		if (status == -1) {
 			MPI_Printf("ERROR With Step...\nTerminating Run...\n");
 			break;
 		}
@@ -103,11 +104,17 @@ int main(int argc, char *argv[]) {
 		wavekillbc(fld,dt);
 #endif
 	 
-	  
+#ifdef INDIRECT
+		if (CentralStar->r >= fld->r[0]) {
+			MPI_Printf("ERROR Central Star has hit the disk inner edge...\n");
+			break;
+		}
+#endif
 		if( t >= Params->t0 + i * (Params->endt) / ((double) Params->numf)) { 
 			 MPI_Printf ("\t\t OUTPUT %d, step size = %.5e, at t=%.5e \n", outnum,h,t);
 			
 			output(fld);
+			output_CentralStar(t,1);
 			i++;
 		 }
 	 

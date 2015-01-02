@@ -22,7 +22,7 @@
 //static double d1c[4] = {1./12,-2./3,2./3,-1./12};
 //static double d2c[5] = {-1./12,4./3,-5./2,4./3,-1./12};
 
-
+#define STRLEN 100
 
 
 typedef struct Mode {
@@ -65,6 +65,8 @@ typedef struct Parameters {
 			w0,
 			rs,
 			ms,
+			init_star_rad,
+			init_star_phi,
 			oms,
 			t0,
 			tau,
@@ -84,8 +86,9 @@ typedef struct Parameters {
 
 typedef struct Star {
 	double ms,oms;
-	double r,phi;
+	double r,phi,x, y;
 	double complex *gr, *gp;
+	double complex rc;
 
 } Star;
 
@@ -144,8 +147,14 @@ void init_rktvd(void);
 void free_rktvd(void);
 #endif
 
-#if defined(INDIRECT) || defined(COMPANION)
-void init_star(Mode *fld);
+#ifdef COMPANION
+void init_cstar(Mode *fld);
+#endif
+#ifdef INDIRECT 
+void init_CentralStar(Mode *fld);
+void calc_star_accel(Mode *fld);
+void calc_star_pos(Mode *fld);
+void output_CentralStar(double t, int firstopen);
 #endif
 
 
@@ -164,6 +173,12 @@ double complex	u_in_bc,u_out_bc,v_in_bc,v_out_bc,
 				
 Bmode *bfld;
 Parameters *Params;
-Star *cstar;
 
+#ifdef COMPANION
+Star *cstar;
+#endif
+
+#ifdef INDIRECT
+Star *CentralStar;
+#endif
 #endif
