@@ -114,7 +114,9 @@ int main(int argc, char *argv[]) {
 			 MPI_Printf ("\t\t OUTPUT %d, step size = %.5e, at t=%.5e \n", outnum,h,t);
 			
 			output(fld);
+#ifdef INDIRECT
 			output_CentralStar(t,1);
+#endif
 			i++;
 		 }
 	 

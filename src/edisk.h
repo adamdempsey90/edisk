@@ -42,6 +42,10 @@ typedef struct Bmode {
 	double *u, *v, *sig;
 	double *dru;
 	double *omk,*dlomk;
+
+#ifdef SELFGRAV
+	double *phi_sg, *gr_sg;
+#endif
 } Bmode;
 
 typedef struct Parameters {

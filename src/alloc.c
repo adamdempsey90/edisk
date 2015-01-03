@@ -36,6 +36,11 @@ void alloc_fld(Mode *fld) {
 	if (fld->gr_sg == NULL) malloc_err("gr_sg");
 	fld->gp_sg = (double complex *)malloc(sizeof(double complex)*NR);
 	if (fld->gp_sg == NULL) malloc_err("gp_sg");
+	
+	bfld->phi_sg = (double *)malloc(sizeof(double)*NR);
+	if (bfld->phi_sg == NULL) malloc_err("bphi_sg");
+	bfld->gr_sg = (double *)malloc(sizeof(double)*NR);
+	if (bfld->gr_sg == NULL) malloc_err("bgr_sg");
 #endif	
 	
 	
@@ -108,6 +113,9 @@ void free_fld(Mode *fld) {
 	free(fld->phi_sg);
 	free(fld->gr_sg);
 	free(fld->gp_sg);
+	
+	free(bfld->phi_sg);
+	free(bfld->gr_sg);
 #endif
 
 

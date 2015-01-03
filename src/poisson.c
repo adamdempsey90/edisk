@@ -1,6 +1,6 @@
 #include "edisk.h"
 
-double *Kernel;
+double *Kernel, *bKernel;
 
 
 void poisson(Mode *fld) {
@@ -133,7 +133,7 @@ double kernel_integral(double m, double r, double rp, double horp, double eps) {
 void init_poisson(double m, double *r) {
 	int i,j,indxr,indxrp,indx;
 	Kernel = (double *)malloc(sizeof(double)*NR*NR);
-
+	bKernel = (double *)malloc(sizeof(double)*NR*NR);
 	for(i=0;i<NR;i++) {
 
 		for(j=0;j<NR;j++) {
@@ -143,6 +143,8 @@ void init_poisson(double m, double *r) {
 			
 			Kernel[indx] = kernel_integral(m, r[indxr],r[indxrp],
 								(Params->hor[indxrp]),Params->eps_sg);
+			bKernel[indx] = kernel_integral(0, r[indxr],r[indxrp],
+								(Params->hor[indxrp]),Params->eps_sg);
 		}
 	}
 	return;
@@ -150,6 +152,7 @@ void init_poisson(double m, double *r) {
 
 void free_poisson(void) {
 	free(Kernel);
+	free(bKernel);
 	return;
 }
 
@@ -163,19 +166,17 @@ void output_selfgrav(Mode *fld) {
 	fprintf(f,"# logr \t r \t Re(phi) \t Im(phi) \t Re(gr) \t Im(gr) \t Re(gp) \t Im(gp)\n");
 	for(i=0;i<NR;i++) {
 		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
-		fld->lr[i+istart],fld->r[i+istart],
-		creal(fld->phi_sg[i]),cimag(fld->phi_sg[i]),
-		creal(fld->gr_sg[i]),cimag(fld->gr_sg[i]),
-		creal(fld->gp_sg[i]),cimag(fld->gp_sg[i]));
+		fld->lr[i+istart],fld->r[i+istart], bfld->phi_sg[i],bfld->gr_sg[i]);
 	}
 	fclose(f);
 	
 	strcpy(fname,Params->outdir);
 	strcat(fname,"selfgrav_kernel.dat");
 	f= fopen(fname,"w");
+	fprintf(f,"#r_i\tr_o\tK0\tK1\n"); 
 	for(i=0;i<NR;i++) {
 		for(j=0;j<NR;j++) {
-			fprintf(f,"%lg\t",creal(Kernel[j+i*NR]));
+			fprintf(f,"%lg\t%lg\t%lg\t%lg\t",fld->r[i+istart],fld->r[j+istart],bKernel[j+i*NR],Kernel[j+i*NR]);
 		}
 		fprintf(f,"\n");
 	}

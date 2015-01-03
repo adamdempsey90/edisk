@@ -1,5 +1,6 @@
 class Field():
 	def __init__(self,t,outdir='',loadghost=False,loadrhs=False,rhsnum=0,NG=1,etol=1e-8):	
+		outdir = check_dir(outdir)
 		self.outdir = outdir
 		disk = loadtxt(outdir+'disk.dat')
 		self.r = disk[:,0]
@@ -71,6 +72,14 @@ class Field():
 			self.dtu = 0
 			self.dtv = 0
 			self.dts = 0
+		
+		
+		self.ind_dbar = polyfit(fld.r,log(fld.dbar),1)[0]
+		self.ind_omk = polyfit(fld.r,log(fld.omk),1)[0]
+		self.ind_c2 = polyfit(fld.r,log(fld.c2),1)[0]
+		self.ind_hor = polyfit(fld.r,log(fld.hor),1)[0]
+		self.ind_nu = polyfit(fld.r,log(fld.nu),1)[0]
+		
 		
 		try:
 			starpos = loadtxt(outdir + 'CentralStar.dat')
@@ -197,9 +206,9 @@ class Field():
 			fig,ax = subplots()
 			ax.set_title('$e$')
 			if ynorm == 0:
-				ax.plot(r,abs(self.E),linestyle)
+				ax.plot(r,real(abs(self.E)),linestyle)
 			else:
-				ax.plot(r,abs(self.E)/ynorm,linestyle)
+				ax.plot(r,real(abs(self.E))/ynorm,linestyle)
 			ax.set_xlabel(xname)
 		if q=='w':
 			fig,ax = subplots()
@@ -244,30 +253,30 @@ class Field():
 		if q in ['vr','vph','vphp','dens','densp']:
 			if q in ['dens','densp']:	
 				for i in range(Nph):
-					dat[:,i] = fld.dbar*(1 + 2*real(fld.sig*exp(-1j*phi[i])))
+					dat[:,i] = self.dbar*(1 + 2*real(self.sig*exp(-1j*phi[i])))
 					if q=='dens':
 						tstr='$<\\Sigma>$'
 					else:
-						dat[:,i] = dat[:,i]/fld.dbar - 1;	
+						dat[:,i] = dat[:,i]/self.dbar - 1;	
 						tstr='$\\Delta \\Sigma / <	\\Sigma > $'
 						
 			if q == 'vr':
 				for i in range(Nph):
-					dat[:,i] = 2*real(fld.u*exp(-1j*phi[i]))
+					dat[:,i] = 2*real(self.u*exp(-1j*phi[i]))
 				tstr='$v_r$'
 			if q == 'vph':
 				for i in range(Nph):
-					dat[:,i] = 2*real(fld.v*exp(-1j*phi[i])) + fld.vyb
+					dat[:,i] = 2*real(self.v*exp(-1j*phi[i])) + self.vyb
 				tstr='$v_\\phi$'
 			if q == 'vphp':
 				for i in range(Nph):
-					dat[:,i] = 2*real(fld.v*exp(-1j*phi[i]))
+					dat[:,i] = 2*real(self.v*exp(-1j*phi[i]))
 				tstr='$\\Delta v_\\phi$'
 
 			figure()
 			pcolormesh(x,y,dat)
 			colorbar()
-			plot(fld.xstar,fld.ystar,'k*',markersize=10)
+			plot(self.xstar,self.ystar,'k*',markersize=10)
 			plot(0,0,'k.')
 			title(tstr)
 			xlabel('x')
@@ -279,7 +288,48 @@ class Field():
 		
 		
 		
+	def disk_summary(self):
+		fig = figure()
+		fig,((ax_omk,ax_c2,ax_nu),(ax_sig,ax_hor,ax_Q)) = subplots(2,3,sharex='col')
 		
+		
+		ax_sig.set_xlabel('$\ln r$',fontsize='large')
+		ax_hor.set_xlabel('$\ln r$',fontsize='large')
+		ax_Q.set_xlabel('$\ln r$',fontsize='large')
+		
+		ax_omk.set_title('$\\Omega$',fontsize='large')
+		ax_c2.set_title('$c^2$',fontsize='large')
+		ax_nu.set_title('$\\log_{10}(\\nu)$',fontsize='large')
+		
+		ax_sig.set_title('$<\\Sigma>$',fontsize='large')
+		ax_hor.set_title('$H/r$',fontsize='large')
+		ax_Q.set_title('Toomre $Q$',fontsize='large')
+		
+		
+		omk_str = '$d\ln \\Omega / d\ln t$ = %.1f' % fld.ind_omk
+		sig_str = '$d\ln <\\Sigma> / d\ln t$ = %.1f' % fld.ind_dbar
+		c2_str = '$d\ln c^2 / d\ln t$ = %.1f' % fld.ind_c2
+		hor_str = '$d\ln ( H/r ) / d\ln t$ = %.1f' % fld.ind_hor
+		nu_str = '$d\ln \\nu / d\ln t$ = %.1f' % fld.ind_nu
+		
+		ax_omk.plot(fld.r,fld.omk,label=omk_str)
+		ax_c2.plot(fld.r,fld.c2,label=c2_str)
+		ax_nu.plot(fld.r,log10(fld.nu),label=nu_str)
+		
+		ax_sig.plot(fld.r,fld.dbar,label=sig_str)
+		ax_hor.plot(fld.r,fld.hor,label=hor_str)
+		ax_Q.plot(fld.r,fld.Q)
+		
+		ax_omk.legend(loc='best')
+		ax_c2.legend(loc='best')
+		ax_nu.legend(loc='best')
+		ax_sig.legend(loc='best')
+		ax_hor.legend(loc='best')
+		
+		
+		show()
+		
+			
 	def draw_ellipse(self,num_ellipse,(xc,yc)=(0,0),Nph=500):
 		pgrid = linspace(0,2*pi,Nph)
 		# (Np , Nr)		
@@ -329,7 +379,7 @@ class Field():
 		return
 		
 def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None,logr=True):
-	if q not in ['u','v','sig','E','e','w','ex','ey','star']:
+	if q not in ['u','v','sig','E','e','w','ex','ey']:
 		print 'Not Valid Variable Name'
 		return
 		
@@ -350,7 +400,7 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None,logr=True):
 			if q=='E':
 				dat[:,i] = fld.E
 			if q=='e':
-				dat[:,i] = abs(fld.E)
+				dat[:,i] = real(abs(fld.E))
 			if q=='w':
 				dat[:,i] = angle(fld.E)
 			if q=='ex':
@@ -479,16 +529,7 @@ def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None,logr=True):
 			
 			fig.canvas.draw()
 	
-	if q=='star':
-		dat = loadtxt(fld0.outdir + 'CentralStar.dat')
-		fig = figure()
-		ax = fig.add_subplot(111)
-		ax.set_title('Star Position')
-		ax.set_xlabel('x')
-		ax.set_ylabel('y')
-		
-		ax.plot(dat[:,1],dat[:,2],'-*')
-		show()
+	
 					
 	return dat,fld0		
 	
@@ -540,7 +581,215 @@ def animate_ellipse(t,num_ellipse,(xc,yc)=(0,0),Nph=500):
 			ax2.set_ylim(l2range)
 			fig.canvas.draw()
 
+
+def plotstar(outdir='',inner_rad=None,linestyle='-*'):
+		
+	dat = loadtxt(outdir + 'CentralStar.dat')
+	fig = figure()
+	ax = fig.add_subplot(121)
+	ax.set_title('Star Position',fontsize='large')
+	ax.set_xlabel('x',fontsize='large')
+	ax.set_ylabel('y',fontsize='large')
+	ax.plot(dat[:,1],dat[:,2],linestyle)
+	if inner_rad != None:
+		if inner_rad <= 10*dat[:,3].max():
+			ax.plot(inner_rad*cos(linspace(0,2*pi,100)), inner_rad*sin(linspace(0,2*pi,100)),'-r')
+		else:
+			print 'Disk inner radius too far out!'
+	ax2 = fig.add_subplot(122)
+	ax2.set_title('Star radius',fontsize='large')
+	ax2.set_xlabel('$ t_{orb}$',fontsize='large')
+	ax2.set_ylabel('$ \ln r_\star $',fontsize='large')
+	ax2.plot(dat[:,0]/(2*pi),log(dat[:,3]),linestyle)
+	if inner_rad != None:
+		if inner_rad <= 10*dat[:,3].max():
+			ax2.plot(dat[:,0]/(2*pi),log(inner_rad)*ones(len(dat[:,0])),'-r')
+
+def check_dir(directory):
+	if len(directory) != 0:
+		if directory[-1] != '/':
+			directory += '/'
+	return directory
+			
+def make_star_eccen_plots(none_dir,ind_dir,sg_dir,both_dir,tend):
+	sg_dir = check_dir(sg_dir)
+	ind_dir = check_dir(ind_dir)
+	both_dir = check_dir(both_dir)
+	none_dir = check_dir(none_dir)
 	
+	dat1 = loadtxt(ind_dir + 'CentralStar.dat')
+	dat3 = loadtxt(both_dir + 'CentralStar.dat')
+	
+	
+	dat1 = dat1[:tend,:]
+	dat3 = dat3[:tend,:]
+	
+	t = dat1[:,0]
+	
+	fld0 = Field(0,outdir=none_dir)
+	fld1 = Field(0,outdir=ind_dir)
+	fld2 = Field(0,outdir=sg_dir)
+	fld3 = Field(0,outdir=both_dir)
+	
+	t /= (2*pi/fld0.omk[0])
+	
+	ecc0 = zeros((len(t),1))
+	ecc1 = zeros((len(t),1))
+	ecc2 = zeros((len(t),1))
+	ecc3 = zeros((len(t),1))
+	
+	print 'Loading times'
+	for i in range(tend):
+	
+		fld=Field(i,outdir=none_dir)
+		ecc0[i] = real(abs(fld.E)).max(axis=0)
+		
+		fld=Field(i,outdir=ind_dir)
+		ecc1[i] = real(abs(fld.E)).max(axis=0)
+		
+		fld=Field(i,outdir=sg_dir)
+		ecc2[i] = real(abs(fld.E)).max(axis=0)
+		
+		fld=Field(i,outdir=both_dir)
+		ecc3[i] = real(abs(fld.E)).max(axis=0)
+	print 'Done'	
+	
+	ecc0 = log(ecc0/ecc0.max())
+	ecc1 = log(ecc1/ecc1.max())
+	ecc2 = log(ecc2/ecc2.max())
+	ecc3 = log(ecc3/ecc3.max())
+	
+	growth0 = polyfit(t,ecc0,1) 
+	growth1 = polyfit(t,ecc1,1) 
+	growth2 = polyfit(t,ecc2,1) 
+	growth3 = polyfit(t,ecc3,1) 
+	
+	estr0 = '$d\ln e / dt$ = %.2e' % growth0[0][0]
+	estr1 = '$d\ln e / dt$ = %.2e' % growth1[0][0]
+	estr2 = '$d\ln e / dt$ = %.2e' % growth2[0][0]
+	estr3 = '$d\ln e / dt$ = %.2e' % growth3[0][0]
+	
+	
+	x0,y0,r0 = (0,0,0)
+	x2,y2,r2 = (0,0,0)
+	x1 = dat1[:,1]
+	y1 = dat1[:,2]
+	r1 = log(dat1[:,3] / fld1.nlr[0])
+	x3 = dat3[:,1]
+	y3 = dat3[:,2]
+	r3 = log(dat3[:,3] / fld3.nlr[0])
+	
+	
+	rgrowth1 = polyfit(t,ecc1,1) 
+	rgrowth3 = polyfit(t,ecc3,1) 
+	
+	rstr1 = '$d\ln r_\star / dt$ = %.2e' % rgrowth1[0][0]
+	rstr3 = '$d\ln r_\star / dt$ = %.2e' % rgrowth3[0][0]
+	
+	
+	fig = figure()
+	ax_none_star = fig.add_subplot(431)
+	ax_none_r = fig.add_subplot(432)
+	ax_none_e = fig.add_subplot(433)
+	
+	ax_ind_star = fig.add_subplot(434)
+	ax_ind_r = fig.add_subplot(435)
+	ax_ind_e = fig.add_subplot(436)
+	
+	ax_sg_star = fig.add_subplot(437)
+	ax_sg_r = fig.add_subplot(438)
+	ax_sg_e = fig.add_subplot(439)
+	
+	ax_both_star = fig.add_subplot(4,3,10)
+	ax_both_r = fig.add_subplot(4,3,11)
+	ax_both_e = fig.add_subplot(4,3,12)
+	
+	
+	
+	ax_none_star.set_title('Star Position',fontsize='large')
+	ax_none_r.set_title('Star Radius over Time',fontsize='large')
+	ax_none_e.set_title('Maximum Disk Eccentricity over Time',fontsize='large')
+	
+	ax_both_star.set_xlabel('$x$',fontsize='large')
+	ax_both_r.set_xlabel('$t/P_{inner}$',fontsize='large')
+	ax_both_e.set_xlabel('$t/P_{inner}$',fontsize='large')
+	
+	ax_none_star.set_ylabel('$y$',fontsize='large')
+	ax_ind_star.set_ylabel('$y$',fontsize='large')
+	ax_sg_star.set_ylabel('$y$',fontsize='large')
+	ax_both_star.set_ylabel('$y$',fontsize='large')
+	
+	
+	ax_none_r.set_ylabel('$\ln ( r_\star / r_i )$',fontsize='large')
+	ax_ind_r.set_ylabel('$\ln ( r_\star / r_i )$',fontsize='large')
+	ax_sg_r.set_ylabel('$\ln ( r_\star / r_i )$',fontsize='large')
+	ax_both_r.set_ylabel('$\ln ( r_\star / r_i )$',fontsize='large')
+	
+	ax_none_e.set_ylabel('$\ln ( e_{peak}/ e_{max} )$',fontsize='large')
+	ax_ind_e.set_ylabel('$\ln ( e_{peak}/ e_{max} )$',fontsize='large')
+	ax_sg_e.set_ylabel('$\ln ( e_{peak}/ e_{max} )$',fontsize='large')
+	ax_both_e.set_ylabel('$\ln ( e_{peak}/ e_{max} )$',fontsize='large')
+	
+	ax_none_star.plot(x0,y0,'-*')
+	ax_ind_star.plot(x1,y1,'-*')
+	ax_sg_star.plot(x2,y2,'-*')
+	ax_both_star.plot(x3,y3,'-*')
+	
+	ax_ind_r.plot(t,r1,'-*',label=rstr1)
+	ax_both_r.plot(t,r3,'-*',label=rstr3)
+	
+	ax_none_e.plot(t,ecc0,label=estr0)
+	ax_ind_e.plot(t,ecc1,label=estr1)
+	ax_sg_e.plot(t,ecc2,label=estr2)
+	ax_both_e.plot(t,ecc3,label=estr3)
+	
+	
+	
+	ind_star_max = max( ax_ind_star.get_xlim() + ax_ind_star.get_ylim())
+	ind_star_min = min( ax_ind_star.get_xlim() + ax_ind_star.get_ylim())
+	ind_star_lim = max((ind_star_max,abs(ind_star_min)))
+	ax_ind_star.set_xlim( (-ind_star_lim, ind_star_lim) )
+	ax_ind_star.set_ylim( (-ind_star_lim, ind_star_lim) )
+	
+	both_star_max = max( ax_both_star.get_xlim() + ax_both_star.get_ylim())
+	both_star_min = min( ax_both_star.get_xlim() + ax_both_star.get_ylim())
+	both_star_lim = max((both_star_max,abs(both_star_min)))
+	ax_both_star.set_xlim( (-both_star_lim, both_star_lim) )
+	ax_both_star.set_ylim( (-both_star_lim, both_star_lim) )
+	
+	
+	ax_none_e.legend(loc='upper right')
+	
+	ax_ind_r.legend(loc='upper right')
+	ax_ind_e.legend(loc='upper right')
+	
+	ax_sg_e.legend(loc='lower right')
+	
+	ax_both_r.legend(loc='lower right')
+	ax_both_e.legend(loc='lower right')
+	
+	mean(ax_none_e.get_xlim())
+	
+	x_coord_label_none = ax_none_e.get_xlim()[1]
+	x_coord_label_ind = ax_ind_e.get_xlim()[1]
+	x_coord_label_sg = ax_sg_e.get_xlim()[1]
+	x_coord_label_both = ax_both_e.get_xlim()[1]
+	 
+	y_coord_label_none = mean(ax_none_e.get_ylim()) 
+	y_coord_label_ind = mean(ax_ind_e.get_ylim()) 
+	y_coord_label_sg = mean(ax_sg_e.get_ylim()) 
+	y_coord_label_both = mean(ax_both_e.get_ylim()) 
+	
+	bbox_props = dict(boxstyle='square',facecolor='white')
+	ax_none_e.text(x_coord_label_none,y_coord_label_none,'Neither',fontsize=15,bbox=bbox_props)
+	ax_ind_e.text(x_coord_label_ind,y_coord_label_ind,'Indirect only',fontsize=15,bbox=bbox_props)
+	ax_sg_e.text(x_coord_label_sg,y_coord_label_sg,'SG only',fontsize=15,bbox=bbox_props)
+	ax_both_e.text(x_coord_label_both,y_coord_label_both,'Both',fontsize=15,bbox=bbox_props)
+
+	
+	show()
+	
+		
 def animate_real(q,t,xlims=None,ylims=None,Nph=500):
 
 	if q not in ['dens','vx','vy','E']:
