@@ -377,7 +377,11 @@ class Field():
 		plot([starpos[0]],[starpos[1]],'*')
 		title('$\\frac{\Sigma - <\Sigma>}{<\Sigma>}$')
 		return
-		
+	
+
+			
+				
+	
 def animate(q,t,dt=1,linestyle='-',dat=None,fld0=None,logr=True):
 	if q not in ['u','v','sig','E','e','w','ex','ey']:
 		print 'Not Valid Variable Name'
@@ -585,6 +589,11 @@ def animate_ellipse(t,num_ellipse,(xc,yc)=(0,0),Nph=500):
 def plotstar(outdir='',inner_rad=None,linestyle='-*'):
 		
 	dat = loadtxt(outdir + 'CentralStar.dat')
+	
+	growth_rate = polyfit(dat[1:,0],log(dat[1:,3]),1)
+	print 'Growth rate is ', growth_rate
+	glabel = '$d\ln r_\star / dt$ = %.2e' % growth_rate[0]
+	
 	fig = figure()
 	ax = fig.add_subplot(121)
 	ax.set_title('Star Position',fontsize='large')
@@ -600,11 +609,11 @@ def plotstar(outdir='',inner_rad=None,linestyle='-*'):
 	ax2.set_title('Star radius',fontsize='large')
 	ax2.set_xlabel('$ t_{orb}$',fontsize='large')
 	ax2.set_ylabel('$ \ln r_\star $',fontsize='large')
-	ax2.plot(dat[:,0]/(2*pi),log(dat[:,3]),linestyle)
+	ax2.plot(dat[:,0]/(2*pi),log(dat[:,3]),linestyle,label=glabel)
 	if inner_rad != None:
 		if inner_rad <= 10*dat[:,3].max():
 			ax2.plot(dat[:,0]/(2*pi),log(inner_rad)*ones(len(dat[:,0])),'-r')
-
+	ax2.legend(loc='lower right')
 def check_dir(directory):
 	if len(directory) != 0:
 		if directory[-1] != '/':
@@ -792,7 +801,7 @@ def make_star_eccen_plots(none_dir,ind_dir,sg_dir,both_dir,tend):
 		
 def animate_real(q,t,xlims=None,ylims=None,Nph=500):
 
-	if q not in ['dens','vx','vy','E']:
+	if q not in ['dens','densp','vr','vph','vphp','E']:
 		print 'Not Valid Variable Name'
 		return 
 
@@ -807,17 +816,33 @@ def animate_real(q,t,xlims=None,ylims=None,Nph=500):
 		x[:,p] = fld0.nlr * cos(phi[p])
 		y[:,p] = fld0.nlr * sin(phi[p])
 	
+	
+	if q=='vr':
+		tstr = '$v_r$'
+	if q=='vphp':
+		tstr = '$v_\phi - < v_\phi >$'
+	if q=='vph':
+		tstr = '$v_\phi$'
+	if q=='dens':
+		tstr = '$\\Sigma$'
+	if q=='densp':
+		tstr = '$(\\Sigma- < \\Sigma >)/<\\Sigma>$'
+	if q=='E':
+		tstr = '$e$'
+	
 	for i,j in enumerate(t):
 		print 'Loading t = ' + str(i)
 		fld=Field(j)
 		for p in range(Nph):
-			if q=='vx':
+			if q=='vr':
 				dat[:,p,i] =  2*real(fld.u*exp(-1j*phi[p]))
-			if q=='vyp':
+			if q=='vphp':
 				dat[:,p,i] =   2*real(fld.v*exp(-1j*phi[p]))
-			if q=='vy':
+			if q=='vph':
 				dat[:,p,i] =   2*real(fld.v*exp(-1j*phi[p])) + fld.vyb
 			if q=='dens':
+				dat[:,p,i] =  fld.dbar*(1 + 2*real(fld.sig*exp(-1j*phi[p])))
+			if q=='densp':
 				dat[:,p,i] =  fld.dbar*(1 + 2*real(fld.sig*exp(-1j*phi[p])))/fld.dbar - 1
 			if q=='E':
 				dat[:,p,i] =  2*abs(real(fld.E*exp(-1j*phi[p])))
@@ -827,7 +852,7 @@ def animate_real(q,t,xlims=None,ylims=None,Nph=500):
 		fig.clear()
 		pcolormesh(x,y,dat[:,:,i])
 		colorbar()
-		title(q + ',    t = ' + str(j))
+		title(tstr + ',    t = ' + str(j))
 		fig.canvas.draw()
 		
 	
@@ -1132,5 +1157,21 @@ def eccen_plots(r,bvals,Ei,Eo,alpha_b,alpha_s,gamma_s,gamma_b,bc,linestyle='-',l
 	
 	
 	
+def poisson_kernel(r,hor,eps):
 	
-
+	H = hor*r;
+	phi = linspace(-pi,pi,200)
+	Nr = len(r)
+	
+	kernel = zeros((Nr,Nr))
+	
+	for i in range(Nr):
+		for j in range(Nr):
+			chi  = (r[i]*r[i] + r[j]*r[j] - 2*r[i]*r[j]*cos(phi) + eps*eps*H[j]*H[j])/(4*H[j]*H[j])
+			kernel[i,j] = 	trapz((1.0/sqrt(2*pi*H[j]*H[j]))*kn(0,chi)*exp(chi),x=phi)
+	
+	figure()
+	imshow(kernel,center='origin')
+	colorbar()
+	
+	return kernel	

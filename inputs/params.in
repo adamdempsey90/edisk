@@ -1,6 +1,6 @@
 # Input Parameters #
 # Disk Parameters	#
-Nr = 512
+Nr = 800
 m = 1.0
 rmin = -1.0
 rmax = 1.0
@@ -24,7 +24,7 @@ initial phi = 0
 # Time Parameters	#
 t0 = 0
 tau = 0
-endt = 40000
+endt = 10000
 numf = 200
 tol = 1e-8
 outputdir = outputs/

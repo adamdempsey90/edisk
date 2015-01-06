@@ -2,6 +2,10 @@
 
 double *Kernel, *bKernel;
 
+#ifdef GAUSSIAN
+#define EULERGAMMA 0.5772156649015329
+#define LOG2 0.6931471805599453
+#endif
 
 void poisson(Mode *fld) {
 	int i,j, indxr, indxrp, indx0, indx1;
@@ -85,16 +89,40 @@ void poisson(Mode *fld) {
 
 
 double greens_function(double r, double rp, double phi, double horp, double eps) {
-	double chi, ans;
+	double chi,ans, H;
 	
 // 	chi =.25*((rorp*rorp - 2*rorp*cos(phi))/(horp*horp) + eps*eps);
 // 	
 // 	ans = -sqrt(2*M_PI/(horp*horp*rp*rp)) * bessk0(chi) * exp(chi);
 // 	printf("%lg \t %lg \t %lg \t %lg \t %lg\n",rorp, horp,phi,chi,bessk0(chi)*exp(chi));
+	H = horp*rp;
+#ifdef GAUSSIAN
+	double lchi, fac1, fac2;
 	
-	chi = r*r + rp*rp - 2*r*rp*cos(phi) + eps*horp*horp*rp*rp;
+	chi = (r*r + rp*rp - 2*r*rp*cos(phi) + eps*eps*H*H)/(4*H*H);
+ 	lchi = log(chi);
+ 	fac1 = 1.0/sqrt(2*M_PI*H*H);
+ 	if (lchi >= 1.5) {
+ 		fac2 = sqrt(M_PI/(2*chi))*(1-1.0/(8*chi));
+ 	}
+ 	else {
+ 		if (lchi <= -1.5) {
+ 			fac2 = (-EULERGAMMA + LOG2 - lchi)*(1+chi) 
+ 					+ .25*(1+3*(-EULERGAMMA + LOG2 - lchi))*chi*chi;
+ 		}
+ 		else {
+ 			
+ 			fac2 = exp(chi) * bessk0(chi);
+ 		
+ 		
+ 		}
+ 	}
+ 	ans = fac1 * fac2;
+#else
+	chi = r*r + rp*rp - 2*r*rp*cos(phi) + eps*eps*H*H;
 	
 	ans = 1.0/sqrt(chi);
+#endif
 //	printf("%lg \t %lg \t %lg \t %lg \t %lg \t %lg\n",r, rp, horp,phi,chi,ans);
 	
 	
@@ -163,9 +191,9 @@ void output_selfgrav(Mode *fld) {
 	strcpy(fname,Params->outdir);
 	strcat(fname,"selfgrav.dat");
 	FILE *f = fopen(fname,"w");
-	fprintf(f,"# logr \t r \t Re(phi) \t Im(phi) \t Re(gr) \t Im(gr) \t Re(gp) \t Im(gp)\n");
+	fprintf(f,"# logr \t r \t Phi_bg \t gr_bg\n");
 	for(i=0;i<NR;i++) {
-		fprintf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
+		fprintf(f,"%lg\t%lg\t%lg\t%lg\n",
 		fld->lr[i+istart],fld->r[i+istart], bfld->phi_sg[i],bfld->gr_sg[i]);
 	}
 	fclose(f);
