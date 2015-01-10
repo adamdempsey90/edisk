@@ -48,6 +48,9 @@ def generate_extra_files(defs):
 	else:
 		algfile = 'algo.c rkf.c rk45.c'
 
+	if 'TRANSPORT' in defs:
+		algfile += ' transport.c'
+		
 	if 'SPLIT' in defs:
 		algfile += ' rktvd.c'
 	
@@ -64,6 +67,9 @@ def generate_extra_files(defs):
 	if 'SELFGRAV2D' in defs:
 		algfile += ' poisson2d.c'
 	
+	if 'WAVEKILLBC' in defs or 'KILLIN' in defs or 'KILLOUT' in defs:
+		algfile += ' wavekill.c'
+		
 	print 'Adding ', algfile, 'to the Makefile'
 	return algfile
 

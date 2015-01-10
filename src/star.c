@@ -2,6 +2,7 @@
 
 
 void init_CentralStar(Mode *fld) {
+	printf("Initializing Central Star\n");
 	CentralStar->ms = 1;
 	CentralStar->oms = 0;
 	CentralStar->r = Params->init_star_rad;

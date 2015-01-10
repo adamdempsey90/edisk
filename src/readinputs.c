@@ -18,7 +18,9 @@ void read_inputs(char *inputdir) {
 			indfl,
 			alpha_s,
 			alpha_b,
+			Mdisk,
 			sig0,
+			mdisk,
 			indsig,
 			q,
 			eps_sg,
@@ -53,7 +55,11 @@ void read_inputs(char *inputdir) {
 	fscanf(f,"flare index = %lg \n", &indfl);
 	fscanf(f,"alpha shear =  %lg \n",&alpha_s);
 	fscanf(f,"alpha bulk =  %lg \n",&alpha_b);
+#ifdef INPUTDISKMASS
+	fscanf(f,"Mdisk =  %lg \n",&mdisk);
+#else
 	fscanf(f,"sigma0 =  %lg \n",&sig0);
+#endif
 	fscanf(f,"sigma index =  %lg \n",&indsig);
 	fscanf(f,"rot index =  %lg \n",&q);
 	fscanf(f,"self grav soft =  %lg \n",&eps_sg);
@@ -83,7 +89,6 @@ void read_inputs(char *inputdir) {
 	Params->indfl = indfl;
 	Params->alpha_s = alpha_s;
 	Params->alpha_b = alpha_b;
-	Params->sig0 = sig0;
 	Params->indsig = indsig;
 	Params->q = q;
 	Params->eps_sg = eps_sg;
@@ -100,12 +105,26 @@ void read_inputs(char *inputdir) {
 	Params->tol = tol;
 	Params->dr  = (rmax - rmin) / NR;
 	Params->rs *= (Params->h);
+	
+#ifdef INPUTDISKMASS
 	if (indsig != -2) {
-		Params->Mdisk = 2*M_PI*sig0 * (pow(UNLOG(rmax),indsig+2)-pow(UNLOG(rmin),indsig+2))/(indsig+2);
+		sig0 = mdisk * (indsig + 2) / (pow(UNLOG(rmax),indsig+2)-pow(UNLOG(rmin),indsig+2))
+				/ (2*M_PI);
 	}
 	else {
-		Params->Mdisk = 2*M_PI*sig0 * (rmax-rmin);
+		sig0 = mdisk / ( rmax - rmin) / (2*M_PI);
 	}
+#else
+	if (indsig != -2) {
+		mdisk = 2*M_PI*sig0 * (pow(UNLOG(rmax),indsig+2)-pow(UNLOG(rmin),indsig+2))/(indsig+2);
+	}
+	else {
+		mdisk = 2*M_PI*sig0 * (rmax-rmin);
+	}
+#endif
+	Params->Mdisk = mdisk;
+	Params->sig0 = sig0;
+
 	Params->om0 = sqrt(Params->ms + Params->Mdisk);
 	strcpy(Params->outdir,outdir);
 	NTOT = NR+2*NG;

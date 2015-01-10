@@ -40,12 +40,13 @@ int init_fld(Mode *fld) {
 		
 		Params->nus[i] = (Params->alpha_s)*(Params->hor[i])*(Params->hor[i])*(bfld->omk[i])*r*r;
 		Params->nub[i] = (Params->alpha_b)*(Params->hor[i])*(Params->hor[i])*(bfld->omk[i])*r*r;
-		
+
+#ifdef PRESSURECORRECTION		
 		bfld->omk[i] *= sqrt( 1 + (Params->hor[i])*(Params->hor[i])*(Params->indsig));
 		
  		bfld->dlomk[i] += 
  				(1-pow((Params->om0)*pow(r,Params->q)/(bfld->omk[i]),2))*(Params->indfl);
-			
+#endif			
 		bfld->v[i] = r * (bfld->omk[i]);
 		bfld->u[i] = 0;
 		bfld->dru[i] = 0;
@@ -57,6 +58,12 @@ int init_fld(Mode *fld) {
 		fld->gr_sg[i] = 0;
 		fld->gp_sg[i] = 0;
 #endif
+
+/* Non power law density and sound speed profiles */
+// 
+// 		bfld->sig[i] = (Params->sig0)* (1 - pow(exp(Params->rmin)/r,10))*sqrt(exp(Params->rmin)/r);
+// 		Params->c2[i] = .05*.05 * (1- exp(Params->rmin)/r)*(exp(Params->rmin)/r);
+
 	}
 	Params->indnus = 2 *(Params->indfl) + Params->q + 2;
 	Params->indnub = 2 *(Params->indfl) + Params->q + 2;
@@ -83,7 +90,29 @@ int init_fld(Mode *fld) {
 	printf("Solving for self gravity based on i.c \n");
 	poisson(fld);
 	output_selfgrav(fld);
+
+#ifdef SGCORRECTION	
+	for(i=0;i<NR;i++) {
+		bfld->omk[i+istart] = sqrt((bfld->omk[i+istart])*(bfld->omk[i+istart]) 
+										- (bfld->gr_sg[i] / (fld->r[i+istart])));
+		bfld->v[i+istart] = (bfld->omk[i+istart])*(fld->r[i+istart]);
+	}
+	for(i=1;i<NTOT-1;i++) {
+		if (i == 1) {
+			bfld->dlomk[i] = (log(bfld->omk[i+1]) - log(bfld->omk[i]))/(Params->dr);
+		}
+		else {
+			bfld->dlomk[i] = (log(bfld->omk[i]) - log(bfld->omk[i-1]))/(Params->dr);
+		}
+	}
+	bfld->dlomk[0] = bfld->dlomk[1];
+	bfld->omk[0] = bfld->omk[1] - (bfld->dlomk[0])*(Params->dr);
+	bfld->dlomk[NTOT-1] = bfld->dlomk[NTOT-2];
+	bfld->omk[NTOT-1] =  bfld->omk[NTOT-2] + (bfld->dlomk[NTOT-1])*(Params->dr);
+#endif
 #endif	
+
+
 	return 0;
 }
 
@@ -108,7 +137,7 @@ void user_ic(Mode *fld) {
 		r = fld->r[i];
 		E0 = e0*cexp(I*w); //* cexp(I*drw*lr);
 		
-//		E0 = E0 * cos( .5*M_PI*(fld->r[iend-1] - r)/(fld->r[iend-1]-fld->r[istart]));
+		E0 = E0 * cos( .5*M_PI*(ro - r)/(ro-ri));
 //		
 //		E0 = E0 * exp(-(lr-r0)*(lr-r0)/(sigma*sigma));
 //		E0 = 0;

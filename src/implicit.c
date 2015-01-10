@@ -150,17 +150,17 @@ void get_matrices(int indx, double dt, double r, double m, double nus, double nu
 	
 	
 /* Main Diagonal, inviscid */	
-	A[0][0] = I*m*omk;
+	A[0][0] = 0; // I*m*omk;
 	A[0][1]= 2*(omf + omk);
 	A[0][2] = 0;
 	
 	A[1][0] = -(2*omf + omk*(2+dlomk));
-	A[1][1] = I*m*omk;
+	A[1][1] = 0; //I*m*omk;
 	A[1][2] = I*m*c/r;
 	
 	A[2][0] = -(Params->indsig + 1.)/r;
 	A[2][1] = I*m/r;
-	A[2][2] = I*m*omk;
+	A[2][2] = 0; //I*m*omk;
 
 
 /* Main Diagonal, viscous */
@@ -267,6 +267,12 @@ void get_matrices(int indx, double dt, double r, double m, double nus, double nu
 	F[0] = 0;
 	F[1] = 0;
 	F[2] = 0;
+
+#ifndef TRANSPORT
+	A[0][0] += I*m*omk;
+	A[1][1] += I*m*omk;
+	A[2][2] += I*m*omk;
+#endif
 	
 #ifdef COMPANION 
 	F[0] += cstar->gr[indx];

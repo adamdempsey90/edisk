@@ -1,6 +1,5 @@
 #include "edisk.h"
 
-
 int algo_driver( double *h, double *t, Mode *fld) {
 /* This functions drives the operator split time-stepping.
 	First it sets the boundary conditions.
@@ -10,13 +9,16 @@ int algo_driver( double *h, double *t, Mode *fld) {
 	If we were varying the background state, we would also calculate a new time-step.
 */
 
-	set_bc(fld);
-	
+#ifdef TRANSPORT	
+	transport_step(*h,fld);
+#endif
 #ifdef SPLIT	
 	rktvd_step(*h,*t,fld); 
 #endif
 
-
+#ifndef INFINITE
+	set_bc(fld);
+#endif
 	cranknicholson_step(*h,*t,fld);
 
 #ifdef SELFGRAV
@@ -37,3 +39,6 @@ int algo_driver( double *h, double *t, Mode *fld) {
 
 	return 1;
 }
+
+
+

@@ -92,7 +92,7 @@ class Field():
 			
 		
 		
-	def plot(self,q,linestyle='-',logr=True,Nph=500,xnorm=0,ynorm=0):
+	def plot(self,q,linestyle='-',logr=True,Nph=500,xnorm=0,ynorm=0,xlims=None,ylims=None):
 	
 		if q not in ['u','v','sig','E','nu','c2','hor','Q','omk','dbar','vybar','dtu','dtv','dts','e','w','ex','ey'] \
 		and q not in ['vr','vph','vphp','dens','densp']:
@@ -278,24 +278,33 @@ class Field():
 			colorbar()
 			plot(self.xstar,self.ystar,'k*',markersize=10)
 			plot(0,0,'k.')
+			
+			if ylims != None:
+				ylim(ylims)
 			title(tstr)
 			xlabel('x')
 			ylabel('y')
 		
 	
-		
+		if xlims != None:
+				xlim(xlims)
 		show()
 		
 		
 		
-	def disk_summary(self):
-		fig = figure()
+	def disk_summary(self,logr=True):
 		fig,((ax_omk,ax_c2,ax_nu),(ax_sig,ax_hor,ax_Q)) = subplots(2,3,sharex='col')
+			
+		if logr:
+			xstr =  '$\ln r$'
+			r = fld.r
+		else:
+			xstr = '$r$'
+			r = fld.nlr
 		
-		
-		ax_sig.set_xlabel('$\ln r$',fontsize='large')
-		ax_hor.set_xlabel('$\ln r$',fontsize='large')
-		ax_Q.set_xlabel('$\ln r$',fontsize='large')
+		ax_sig.set_xlabel(xstr,fontsize='large')
+		ax_hor.set_xlabel(xstr,fontsize='large')
+		ax_Q.set_xlabel(xstr,fontsize='large')
 		
 		ax_omk.set_title('$\\Omega$',fontsize='large')
 		ax_c2.set_title('$c^2$',fontsize='large')
@@ -306,19 +315,19 @@ class Field():
 		ax_Q.set_title('Toomre $Q$',fontsize='large')
 		
 		
-		omk_str = '$d\ln \\Omega / d\ln t$ = %.1f' % fld.ind_omk
-		sig_str = '$d\ln <\\Sigma> / d\ln t$ = %.1f' % fld.ind_dbar
-		c2_str = '$d\ln c^2 / d\ln t$ = %.1f' % fld.ind_c2
-		hor_str = '$d\ln ( H/r ) / d\ln t$ = %.1f' % fld.ind_hor
-		nu_str = '$d\ln \\nu / d\ln t$ = %.1f' % fld.ind_nu
+		omk_str = '$d\ln \\Omega / d\ln r$ = %.1f' % fld.ind_omk
+		sig_str = '$d\ln <\\Sigma> / d\ln r$ = %.1f' % fld.ind_dbar
+		c2_str = '$d\ln c^2 / d\ln r$ = %.1f' % fld.ind_c2
+		hor_str = '$d\ln ( H/r ) / d\ln r$ = %.1f' % fld.ind_hor
+		nu_str = '$d\ln \\nu / d\ln r$ = %.1f' % fld.ind_nu
 		
-		ax_omk.plot(fld.r,fld.omk,label=omk_str)
-		ax_c2.plot(fld.r,fld.c2,label=c2_str)
-		ax_nu.plot(fld.r,log10(fld.nu),label=nu_str)
+		ax_omk.plot(r,fld.omk,label=omk_str)
+		ax_c2.plot(r,fld.c2,label=c2_str)
+		ax_nu.plot(r,log10(fld.nu),label=nu_str)
 		
-		ax_sig.plot(fld.r,fld.dbar,label=sig_str)
-		ax_hor.plot(fld.r,fld.hor,label=hor_str)
-		ax_Q.plot(fld.r,fld.Q)
+		ax_sig.plot(r,fld.dbar,label=sig_str)
+		ax_hor.plot(r,fld.hor,label=hor_str)
+		ax_Q.plot(r,fld.Q)
 		
 		ax_omk.legend(loc='best')
 		ax_c2.legend(loc='best')
@@ -590,7 +599,7 @@ def plotstar(outdir='',inner_rad=None,linestyle='-*'):
 		
 	dat = loadtxt(outdir + 'CentralStar.dat')
 	
-	growth_rate = polyfit(dat[1:,0],log(dat[1:,3]),1)
+	growth_rate = polyfit(dat[1:,0]/(2*pi),log(dat[1:,3]),1)
 	print 'Growth rate is ', growth_rate
 	glabel = '$d\ln r_\star / dt$ = %.2e' % growth_rate[0]
 	
@@ -614,6 +623,29 @@ def plotstar(outdir='',inner_rad=None,linestyle='-*'):
 		if inner_rad <= 10*dat[:,3].max():
 			ax2.plot(dat[:,0]/(2*pi),log(inner_rad)*ones(len(dat[:,0])),'-r')
 	ax2.legend(loc='lower right')
+	
+def calc_growth_rate(times, dt, outputdir=''):
+	outputdir = check_dir(outputdir)
+ 
+	ecc = zeros((len(times),1))
+	print 'Loading times'
+	for i,t in enumerate(times):
+		fld=Field(t,outdir=outputdir)
+		ecc[i] = real(abs(fld.E)).max(axis=0)
+	ecc = log(ecc / ecc.max())
+	
+	t = times * dt / (2*pi)
+	
+	growth = polyfit(t,ecc,1)
+	estr = '$d\ln e / dt$ = %.2e' % growth[0][0]
+	
+	fig = figure()
+	plot(t,ecc)
+	plot(t, growth[0]*t + growth[1],'--',label=estr)
+	xlabel('t',fontsize='large')
+	ylabel('$\ln ( e_{peak}/ e_{max} )$',fontsize='large')
+	legend(loc='best')
+	return growth, ecc, t
 def check_dir(directory):
 	if len(directory) != 0:
 		if directory[-1] != '/':
@@ -1017,7 +1049,7 @@ class star():
 				self.gr[i] = -2*self.rs*r[i] / rsoft**2 * trapz(cos(m*phi)*(cos(phi) +q)*(1+q*q+2*q*cos(phi))**(-1.5),x=phi)
 				self.gp[i] = -1j*m * self.phi[i] / sqrt(rsoft)
 
-def E_pred(r,Ei,Eo,beta,alpha_b,alpha_s,gamma_s,gamma_b,bc):
+def E_pred(r,Ei,Eo,beta,alpha_b,alpha_s,gamma_s,gamma_b,bc,ogilvie=False):
 # bc = 0 -> E(ri) = Ei & E(ro) = Eo
 # bc = 1 -> E'(ri) = 0 & E(ro) = Eo
 # bc = 2 -> E(ri) = Ei & E'(ro) = 0
@@ -1033,16 +1065,22 @@ def E_pred(r,Ei,Eo,beta,alpha_b,alpha_s,gamma_s,gamma_b,bc):
 #	ai = -1 - beta/2 - gam
 #	ao = -1 - beta/2 + gam
 
-	a2= 1-1j*alpha_b
+	if ogilvie:
+		gam = sqrt( 1 + beta*beta/4)
+		ai = -1 - beta/2 - gam
+		ao = -1 - beta/2 + gam		
+	else:
 	
-	a0 = 2*beta-1j*alpha_s*(2-2.5*gamma_s+1.5*beta)
-	a1 = beta+3-1j*alpha_b*(gamma_b+1.5)-1j*alpha_s*(3*(gamma_s-beta) - .5)
+		a2= 1-1j*alpha_b
 	
-	a0 /= a2
-	a1 /= a2
+		a0 = 2*beta-1j*alpha_s*(2-2.5*gamma_s+1.5*beta)
+		a1 = beta+3-1j*alpha_b*(gamma_b+1.5)-1j*alpha_s*(3*(gamma_s-beta) - .5)
 	
-	ai = .5*(1-a1 - sqrt((a1-1)**2 -4*a0))
-	ao = .5*(1-a1 + sqrt((a1-1)**2 -4*a0))
+		a0 /= a2
+		a1 /= a2
+	
+		ai = .5*(1-a1 - sqrt((a1-1)**2 -4*a0))
+		ao = .5*(1-a1 + sqrt((a1-1)**2 -4*a0))
 
 	print 'Density power law is: ',beta
 	print 'Inner power law is: ', ai
@@ -1155,6 +1193,15 @@ def eccen_plots(r,bvals,Ei,Eo,alpha_b,alpha_s,gamma_s,gamma_b,bc,linestyle='-',l
 	show()
 	
 	
+def find_surface_density( disk_mass, rin, rout, beta):
+	
+	if beta == -2:
+		fac = 2 * pi * log(rout/rin)
+	else:
+		fac = 2*pi * (rout**(beta+2) - rin**(beta+2))
+		fac /= (beta + 2)
+	
+	return disk_mass / fac
 	
 	
 def poisson_kernel(r,hor,eps):
@@ -1174,4 +1221,72 @@ def poisson_kernel(r,hor,eps):
 	imshow(kernel,center='origin')
 	colorbar()
 	
-	return kernel	
+	return kernel
+
+def compare_eccen_pred(r,edat, epred,epredog,tstr,rsample=200,logr=False):
+	
+	if logr:
+		xname = '$\ln r$'
+	else:
+		xname = '$r$'
+		
+	fig,(ax1,ax2)=subplots(2,sharex=True)
+	ax1.set_title(tstr,fontsize='large')
+	ax1.set_ylabel('$e/e_{max}$',fontsize='large')
+	ax2.set_ylabel('$\\omega / \\pi$',fontsize='large')
+	ax2.set_xlabel(xname,fontsize='large')
+	
+	ax1.plot(r,abs(epred)/abs(epred).max(),'b-',label=r'Prediction')
+	ax1.plot(r,abs(epredog)/abs(epredog).max(),'r-',label=r'Ogilvie Prediction')
+	ax1.plot(r[::rsample],abs(edat[::rsample])/abs(edat).max(),'kx',label=r'Data')
+	ax2.plot(r,angle(epred)/pi,'b-',label=r'Prediction')
+	ax2.plot(r,angle(epredog)/pi,'r-',label=r'Ogilvie Prediction')
+	ax2.plot(r[::rsample],angle(edat[::rsample])/pi,'kx',label=r'Data')
+	
+	ax2.legend(loc='best')
+	
+	return 
+
+def prediction_results():
+	beta_vals = [-1.5, -.75, 0, .75, 1.5]
+	salpha_vals = [ .3, .03, .003, .0003]
+	balpha_vals = [ -.2, -.02, -.002, -.0002]
+		
+	fld=[]
+	beta=[]
+	alpha=[]
+	epred=[]
+	epredog=[]
+	eresids=[]
+	wresids=[]
+	
+	for i in range(len(beta_vals)):
+		for j in range(len(salpha_vals)):
+			b = beta_vals[i]
+			a = salpha_vals[j]
+			beta.append(b)
+			alpha.append(a)
+			
+			
+			dir_name = 'analytic_'+str(b)+'_'+str(a)+'/'
+			
+			print dir_name
+			tfld=Field(1,outdir=dir_name)
+			fld.append(tfld)
+			tepred = E_pred(tfld.nlr,0,.1,b,balpha_vals[j],a,tfld.ind_nu,tfld.ind_nu,0)
+			tepredog = E_pred(tfld.nlr,0,.1,b,balpha_vals[j],a,tfld.ind_nu,tfld.ind_nu,0,ogilvie=True)
+			epred.append(tepred)
+			epredog.append(tepredog)
+			
+			tstr = '$\\beta = %.2f$' % b
+			tstr += ', $\\alpha = %.2e$' % a
+			
+			eresids.append(l2norm(abs(tepred)/abs(tepred).max() - abs(tfld.E)/abs(tfld.E).max()))
+			wresids.append(l2norm(angle(tepred)/pi - angle(tfld.E))/pi)
+			
+			compare_eccen_pred(tfld.r,tfld.E,tepred,tepredog,tstr,rsample=100)
+	
+		
+	return fld, epred, beta, alpha,eresids,wresids		
+			
+		

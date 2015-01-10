@@ -86,6 +86,49 @@ void poisson(Mode *fld) {
 
 }
 
+void poisson_bg(double *r) {
+	int i,j, indxr, indxrp, indx0, indx1;
+	double complex k1,k2,k3;
+	double dr = Params->dr;
+
+
+	for(i=0;i<NR;i++) {
+		indxr = i+istart;
+
+		bfld->phi_sg[i] = 0;
+		for(j=0 ; j < NR-1;j++) {
+			indxrp = j+istart;
+			indx0 = j + i*NR;
+ 			indx1 = j+1+i*NR;
+			
+			k1 = (r[indxrp])*(r[indxrp])*(bfld->sig[indxrp])*bKernel[indx0];
+			
+			k3 = (r[indxrp+1])*(r[indxrp+1])*(bfld->sig[indxrp+1])*bKernel[indx1];
+			
+			k2 = .5*(k1+k3);
+			
+			
+			bfld->phi_sg[i] += (dr/6)*( k1 + 4*k2 + k3 );
+			
+		}
+	}
+	
+	bfld->gr_sg[0] = -(bfld->phi_sg[1] - bfld->phi_sg[0])/(dr*r[istart]);
+	bfld->gr_sg[NR-1] = -(bfld->phi_sg[NR-1]-bfld->phi_sg[NR-2])/(dr*r[NR-1+istart]);
+	
+
+	for(i=1;i<NR-1;i++) {
+		bfld->gr_sg[i] = -(bfld->phi_sg[i+1] - bfld->phi_sg[i-1])/(2*dr * r[i+istart]);
+	}
+
+	
+	
+	
+	
+	return;			
+
+
+}
 
 
 double greens_function(double r, double rp, double phi, double horp, double eps) {
@@ -175,6 +218,9 @@ void init_poisson(double m, double *r) {
 								(Params->hor[indxrp]),Params->eps_sg);
 		}
 	}
+	
+	
+	poisson_bg(r);
 	return;
 }
 
