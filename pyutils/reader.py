@@ -74,11 +74,11 @@ class Field():
 			self.dts = 0
 		
 		
-		self.ind_dbar = polyfit(fld.r,log(fld.dbar),1)[0]
-		self.ind_omk = polyfit(fld.r,log(fld.omk),1)[0]
-		self.ind_c2 = polyfit(fld.r,log(fld.c2),1)[0]
-		self.ind_hor = polyfit(fld.r,log(fld.hor),1)[0]
-		self.ind_nu = polyfit(fld.r,log(fld.nu),1)[0]
+		self.ind_dbar = polyfit(self.r,log(self.dbar),1)[0]
+		self.ind_omk = polyfit(self.r,log(self.omk),1)[0]
+		self.ind_c2 = polyfit(self.r,log(self.c2),1)[0]
+		self.ind_hor = polyfit(self.r,log(self.hor),1)[0]
+		self.ind_nu = polyfit(self.r,log(self.nu),1)[0]
 		
 		
 		try:
@@ -1065,6 +1065,8 @@ def E_pred(r,Ei,Eo,beta,alpha_b,alpha_s,gamma_s,gamma_b,bc,ogilvie=False):
 #	ai = -1 - beta/2 - gam
 #	ao = -1 - beta/2 + gam
 
+	gamma_s += beta
+	gamma_b += beta
 	if ogilvie:
 		gam = sqrt( 1 + beta*beta/4)
 		ai = -1 - beta/2 - gam
@@ -1073,9 +1075,12 @@ def E_pred(r,Ei,Eo,beta,alpha_b,alpha_s,gamma_s,gamma_b,bc,ogilvie=False):
 	
 		a2= 1-1j*alpha_b
 	
-		a0 = 2*beta-1j*alpha_s*(2-2.5*gamma_s+1.5*beta)
-		a1 = beta+3-1j*alpha_b*(gamma_b+1.5)-1j*alpha_s*(3*(gamma_s-beta) - .5)
+#		a0 = 2*beta-1j*alpha_s*(2-2.5*gamma_s+1.5*beta)
+#		a1 = beta+3-1j*alpha_b*(gamma_b+1.5)-1j*alpha_s*(3*(gamma_s-beta) - .5)
 	
+		a0 = 2*beta-1j*.5*alpha_s*(3 + 3*beta - gamma)
+		a1 = beta+3-1j*alpha_b*(gamma_b+1.5)-1j*3*alpha_s*(gamma_s-beta)
+		
 		a0 /= a2
 		a1 /= a2
 	

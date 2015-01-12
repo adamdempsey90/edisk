@@ -176,7 +176,7 @@ void get_matrices(int indx, double dt, double r, double m, double nus, double nu
 	A[1][2] += 0;
 	
 /* bulk viscosity */
-	A[0][0] += -nub*(gamb -1)/r2 ;
+	A[0][0] += nub*(gamb -1)/r2 ;
 	A[0][1] += -nub*I*m*(gamb-1)/r2;
 	A[0][2] += 0;
 	
