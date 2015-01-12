@@ -1078,7 +1078,7 @@ def E_pred(r,Ei,Eo,beta,alpha_b,alpha_s,gamma_s,gamma_b,bc,ogilvie=False):
 #		a0 = 2*beta-1j*alpha_s*(2-2.5*gamma_s+1.5*beta)
 #		a1 = beta+3-1j*alpha_b*(gamma_b+1.5)-1j*alpha_s*(3*(gamma_s-beta) - .5)
 	
-		a0 = 2*beta-1j*.5*alpha_s*(3 + 3*beta - gamma)
+		a0 = 2*beta-1j*.5*alpha_s*(3 + 3*beta - gamma_s)
 		a1 = beta+3-1j*alpha_b*(gamma_b+1.5)-1j*3*alpha_s*(gamma_s-beta)
 		
 		a0 /= a2
@@ -1256,6 +1256,8 @@ def prediction_results():
 	beta_vals = [-1.5, -.75, 0, .75, 1.5]
 	salpha_vals = [ .3, .03, .003, .0003]
 	balpha_vals = [ -.2, -.02, -.002, -.0002]
+	
+	
 		
 	fld=[]
 	beta=[]

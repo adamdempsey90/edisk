@@ -1,16 +1,16 @@
 # Input Parameters #
 # Disk Parameters	#
-Nr = 1024
+Nr = 2048
 m = 1.0
 rmin = -1.0
 rmax = 1.0
 cfl = 5
 h0 = .05
 flare index = 0
-alpha shear = 0.0003
-alpha bulk = -0.0002
+alpha shear = 0.3
+alpha bulk = -0.2
 Mdisk = .01
-sigma index = 1.5
+sigma index = .75
 rot index =  -1.5
 self grav soft = .1
 # Initial Eccentricity  #
