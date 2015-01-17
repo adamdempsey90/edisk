@@ -2,11 +2,11 @@
 
 
 int restart(Mode *fld) {
-	int i;
+	int i,read_result;
 	FILE *f;
 	char fname[STRLEN];
 	char garbage[STRLEN];
-	
+	char *gchar;
 	double lr,r,ru,iu,rv,iv,rs,is,vyb,omk,dbar;
 	
 	strcpy(fname,Params->outdir); 
@@ -21,9 +21,9 @@ int restart(Mode *fld) {
 		return -1;
 	}
 	
-	fgets(garbage,sizeof(garbage),f);	// Input Parameters
+	gchar=fgets(garbage,sizeof(garbage),f);	// Input Parameters
 	for(i=0;i<NTOT;i++) {
-		fscanf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
+		read_result=fscanf(f,"%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\t%lg\n",
 			&lr,&r,&ru,&iu,&rv,&iv,&rs,&is,&vyb,&omk,&dbar);
 			
 	

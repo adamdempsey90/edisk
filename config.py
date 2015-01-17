@@ -1,6 +1,13 @@
 #!/usr/bin/env/python
 
 from sys import argv
+from subprocess import call
+
+def make_directories():
+	call(['mkdir','-p','outputs','bin'])
+	return
+	
+
 
 
 def create_defines_file():
@@ -86,8 +93,8 @@ def create_makefile(algfile):
 					line = '='.join([line.split('=')[0],files])
 				g.write(line)
 	return 0
-	
-	
+
+make_directories()	
 defs = create_defines_file()	
 algfile = generate_extra_files(defs)
 create_makefile(algfile)

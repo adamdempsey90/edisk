@@ -1,6 +1,6 @@
 #include "edisk.h"
 
-void malloc_err(const char *err_str);
+void malloc_err( char *err_str);
 
 void alloc_fld(Mode *fld) {
 	
@@ -105,21 +105,23 @@ void free_fld(Mode *fld) {
 	free(fld->u);
 	free(fld->v);
 	free(fld->sig);
-	
+	free(fld->dtu);
+	free(fld->dtv);
+	free(fld->dts);
+
 	free(fld->r);
 	free(fld->lr);
-	
+
 #ifdef SELFGRAV
 	free(fld->phi_sg);
 	free(fld->gr_sg);
 	free(fld->gp_sg);
-	
 	free(bfld->phi_sg);
 	free(bfld->gr_sg);
 #endif
 
+	
 
-	free(fld);
 	
 	free(bfld->u);
 	free(bfld->v);
@@ -129,13 +131,13 @@ void free_fld(Mode *fld) {
 	free(bfld->omk);
 	free(bfld->dlomk);
 	
-	free(bfld);
+
 	
 	free(Params->hor);
 	free(Params->nus);
 	free(Params->nub);
 	free(Params->c2);
-	free(Params);
+	
 
 #ifdef COMPANION
 	free(cstar->gp);
@@ -148,12 +150,15 @@ void free_fld(Mode *fld) {
 	free(CentralStar->gr);
 	free(CentralStar);
 #endif
-
+	
+	free(fld);
+	free(bfld);
+	free(Params);
 	return;
 }
 
 
-void malloc_err(const char *err_str) {
+void malloc_err(char *err_str) {
 
 	MPI_Printf("\n\n\n");
 	MPI_Printf("Error Allocating:\n");

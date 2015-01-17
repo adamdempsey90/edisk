@@ -31,10 +31,8 @@ typedef struct Mode {
 	double m,dr;
 	double *r, *lr;
 	double complex *dtu,*dtv,*dts;
-
-#ifdef SELFGRAV
 	double complex *phi_sg, *gr_sg, *gp_sg;
-#endif
+
 
 } Mode;
 
@@ -43,9 +41,8 @@ typedef struct Bmode {
 	double *dru;
 	double *omk,*dlomk;
 
-#ifdef SELFGRAV
 	double *phi_sg, *gr_sg;
-#endif
+
 } Bmode;
 
 typedef struct Parameters {

@@ -139,6 +139,9 @@ int main(int argc, char *argv[]) {
 
 		}
     }
+    
+    MPI_Printf("Finished Time Loop, Cleaning Up...\n");
+    
 #endif
 #if defined(IMPLICIT) || defined(SPLIT)
 	cn_solver_free();
@@ -155,9 +158,10 @@ int main(int argc, char *argv[]) {
 #endif
 
 	free_history();
-   	free_fld(fld);
-    toc = clock(); 
-    print_time( (double)(toc - tic) / CLOCKS_PER_SEC );
+	free_fld(fld);
+	MPI_Printf("Calculating Total Execution Time...\n");
+	toc = clock(); 
+	print_time( (double)(toc - tic) / CLOCKS_PER_SEC );
 	MPI_Printf("# steps per second: %f\n", numstep /((double)(toc - tic) / CLOCKS_PER_SEC));
 	MPI_Printf("Average time step: %.2e\n", avgdt/numstep);
 	return 0;

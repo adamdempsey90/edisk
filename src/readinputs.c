@@ -10,6 +10,7 @@
 void read_inputs(char *inputdir) {
 	FILE *f;
 	char garbage[100], outdir[100], ifname[100];
+	char *gchar;
 	double  m,
 			rmin,
 			rmax,
@@ -36,7 +37,7 @@ void read_inputs(char *inputdir) {
 			endt,
 			tol;
 	
-	int numf,hist_dt;
+	int numf,hist_dt,read_result;
 	
 	size_t len = strlen(inputdir);
 	if (inputdir[len-1] != '/' && len != 0) inputdir[len] = '/';
@@ -44,41 +45,41 @@ void read_inputs(char *inputdir) {
 	strcat(ifname,"params.in");
 	f=fopen(ifname,"r");
 	if (f==NULL) printf("\n\nERROR Can't Find Input File!\n\n");
-	fgets(garbage,sizeof(garbage),f);	// Input Parameters
-	fgets(garbage,sizeof(garbage),f);	// Disk Parameters
-	fscanf(f,"Nr = %d \n",&NR);
-	fscanf(f,"m = %lg \n",&m);
-	fscanf(f,"rmin = %lg \n",&rmin);
-	fscanf(f,"rmax = %lg \n",&rmax);
-	fscanf(f,"cfl = %lg \n",&cfl);
-	fscanf(f,"h0 =  %lg \n",&h);
-	fscanf(f,"flare index = %lg \n", &indfl);
-	fscanf(f,"alpha shear =  %lg \n",&alpha_s);
-	fscanf(f,"alpha bulk =  %lg \n",&alpha_b);
+	gchar=fgets(garbage,sizeof(garbage),f);	// Input Parameters
+	gchar=fgets(garbage,sizeof(garbage),f);	// Disk Parameters
+	read_result=fscanf(f,"Nr = %d \n",&NR);
+	read_result=fscanf(f,"m = %lg \n",&m);
+	read_result=fscanf(f,"rmin = %lg \n",&rmin);
+	read_result=fscanf(f,"rmax = %lg \n",&rmax);
+	read_result=fscanf(f,"cfl = %lg \n",&cfl);
+	read_result=fscanf(f,"h0 =  %lg \n",&h);
+	read_result=fscanf(f,"flare index = %lg \n", &indfl);
+	read_result=fscanf(f,"alpha shear =  %lg \n",&alpha_s);
+	read_result=fscanf(f,"alpha bulk =  %lg \n",&alpha_b);
 #ifdef INPUTDISKMASS
-	fscanf(f,"Mdisk =  %lg \n",&mdisk);
+	read_result=fscanf(f,"Mdisk =  %lg \n",&mdisk);
 #else
-	fscanf(f,"sigma0 =  %lg \n",&sig0);
+	read_result=fscanf(f,"sigma0 =  %lg \n",&sig0);
 #endif
-	fscanf(f,"sigma index =  %lg \n",&indsig);
-	fscanf(f,"rot index =  %lg \n",&q);
-	fscanf(f,"self grav soft =  %lg \n",&eps_sg);
-	fgets(garbage,sizeof(garbage),f);	// Initial Eccentricty
-	fscanf(f,"initial e = %lg \n",&e0);
-	fscanf(f,"initial a.o.p = %lg \n",&w0);
-	fgets(garbage,sizeof(garbage),f);	// Star Parameters
-	fscanf(f,"rsoft =  %lg \n",&rs);
-	fscanf(f,"Ms =  %lg \n",&ms);
-	fscanf(f,"initial rad =  %lg \n",&init_star_rad);
-	fscanf(f,"initial phi =  %lg \n",&init_star_phi);
-	fgets(garbage,sizeof(garbage),f);	// Time Parameters
-	fscanf(f,"t0 =  %lg \n",&t0);
-	fscanf(f,"tau =  %lg \n",&tau);
-	fscanf(f,"endt =  %lg \n",&endt);
-	fscanf(f,"numf =  %d \n",&numf);
-	fscanf(f,"hist dt =  %d \n",&hist_dt);
-	fscanf(f,"tol =  %lg \n",&tol);
-	fscanf(f,"outputdir = %s \n",outdir);
+	read_result=fscanf(f,"sigma index =  %lg \n",&indsig);
+	read_result=fscanf(f,"rot index =  %lg \n",&q);
+	read_result=fscanf(f,"self grav soft =  %lg \n",&eps_sg);
+	gchar=fgets(garbage,sizeof(garbage),f);	// Initial Eccentricty
+	read_result=fscanf(f,"initial e = %lg \n",&e0);
+	read_result=fscanf(f,"initial a.o.p = %lg \n",&w0);
+	gchar=fgets(garbage,sizeof(garbage),f);	// Star Parameters
+	read_result=fscanf(f,"rsoft =  %lg \n",&rs);
+	read_result=fscanf(f,"Ms =  %lg \n",&ms);
+	read_result=fscanf(f,"initial rad =  %lg \n",&init_star_rad);
+	read_result=fscanf(f,"initial phi =  %lg \n",&init_star_phi);
+	gchar=fgets(garbage,sizeof(garbage),f);	// Time Parameters
+	read_result=fscanf(f,"t0 =  %lg \n",&t0);
+	read_result=fscanf(f,"tau =  %lg \n",&tau);
+	read_result=fscanf(f,"endt =  %lg \n",&endt);
+	read_result=fscanf(f,"numf =  %d \n",&numf);
+	read_result=fscanf(f,"hist dt =  %d \n",&hist_dt);
+	read_result=fscanf(f,"tol =  %lg \n",&tol);
+	read_result=fscanf(f,"outputdir = %s \n",outdir);
 		
 	fclose(f);
 	

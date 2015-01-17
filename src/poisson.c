@@ -87,14 +87,12 @@ void poisson(Mode *fld) {
 }
 
 void poisson_bg(double *r) {
-	int i,j, indxr, indxrp, indx0, indx1;
+	int i,j, indxrp, indx0, indx1;
 	double complex k1,k2,k3;
 	double dr = Params->dr;
 
 
 	for(i=0;i<NR;i++) {
-		indxr = i+istart;
-
 		bfld->phi_sg[i] = 0;
 		for(j=0 ; j < NR-1;j++) {
 			indxrp = j+istart;
