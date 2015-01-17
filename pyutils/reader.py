@@ -23,7 +23,7 @@ class Field():
 		self.omk0 = pow(self.nlr,-1.5)
 		self.dbar = dat[:,10]
 		self.E = (2*self.v - 1j*self.u) / (2*self.vyb)
-		
+		self.kappa = sqrt(4*self.omk**2 + 2*self.omk * gradient(self.omk,self.dr))
 		
 		if not loadghost:
 			self.r = self.r[NG:-NG]
@@ -42,6 +42,7 @@ class Field():
 			self.omk0 = self.omk0[NG:-NG]
 			self.dbar = self.dbar[NG:-NG]
 			self.E = self.E[NG:-NG]
+			self.kappa = self.kappa[NG:-NG]
 			self.nr -= 2*NG
 			
 #		self.E = (abs(real(self.E))>etol).astype('int')*real(self.E) \
@@ -92,9 +93,9 @@ class Field():
 			
 		
 		
-	def plot(self,q,linestyle='-',logr=True,Nph=500,xnorm=0,ynorm=0,xlims=None,ylims=None):
+	def plot(self,q,linestyle='-',logr=True,Nph=500,xnorm=0,ynorm=0,xlims=None,ylims=None,ncontours=20):
 	
-		if q not in ['u','v','sig','E','nu','c2','hor','Q','omk','dbar','vybar','dtu','dtv','dts','e','w','ex','ey'] \
+		if q not in ['all','u','v','sig','E','nu','c2','hor','Q','omk','dbar','vybar','dtu','dtv','dts','e','w','ex','ey'] \
 		and q not in ['vr','vph','vphp','dens','densp']:
 			print 'Not Valid Variable Name'
 			return
@@ -120,7 +121,45 @@ class Field():
 		if xnorm != 0:
 			r /= xnorm
 			
+		if q=='all':
+			fig,((ax_ru,ax_rv,ax_rs,ax_re),(ax_iu,ax_iv,ax_is,ax_ie)) = subplots(2,4,sharex='col')
 			
+		
+			ax_iu.set_xlabel(xname,fontsize='large')
+			ax_iv.set_xlabel(xname,fontsize='large')
+			ax_is.set_xlabel(xname,fontsize='large')
+			ax_ie.set_xlabel(xname,fontsize='large')
+		
+			
+			ax_ru.set_ylabel('$Re(u)$',fontsize='large')
+			ax_rv.set_ylabel('$Re(v)$',fontsize='large')
+			ax_rs.set_ylabel('$Re(\\sigma)$',fontsize='large')
+			ax_re.set_ylabel('$e$',fontsize='large')
+			
+			
+			ax_iu.set_ylabel('$Im(u)$',fontsize='large')
+			ax_iv.set_ylabel('$Im(v)$',fontsize='large')
+			ax_is.set_ylabel('$Im(\\sigma)$',fontsize='large')
+			ax_ie.set_ylabel('$\\omega/\\pi$',fontsize='large')
+			
+
+			ax_ru.set_title('u',fontsize='large')
+			ax_rv.set_title('v',fontsize='large')
+			ax_rs.set_title('$\\sigma$',fontsize='large')
+			ax_re.set_title('E',fontsize='large')
+
+
+			ax_ru.plot(r,real(fld.u),label=r'$Re(u)$')
+			ax_rv.plot(r,real(fld.v),label=r'$Re(v)$')
+			ax_rs.plot(r,real(fld.sig),label=r'$Re(\\sigma)$')
+			ax_re.plot(r,abs(fld.E),label=r'$e$')
+		
+			ax_iu.plot(r,imag(fld.u),label=r'$Im(u)$')
+			ax_iv.plot(r,imag(fld.v),label=r'$Im(v)$')
+			ax_is.plot(r,imag(fld.sig),label=r'$Im(\\sigma)$')
+			ax_ie.plot(r,angle(fld.E)/pi,label=r'$\\omega/\\pi$')
+	
+		
 		if q=='u':
 			fig,(ax1,ax2)=subplots(2,sharex=True)
 			ax1.set_title('u')
@@ -276,6 +315,7 @@ class Field():
 			figure()
 			pcolormesh(x,y,dat)
 			colorbar()
+			contour(x,y,dat,ncontours,colors='k')
 			plot(self.xstar,self.ystar,'k*',markersize=10)
 			plot(0,0,'k.')
 			
@@ -338,6 +378,29 @@ class Field():
 		
 		show()
 		
+	def plot_cfl(self,logr=True):
+		
+		if logr:
+			r = fld.r
+			xstr = '$\ln r$'
+		else:
+			r = fld.nlr
+			xstr = '$r$'
+			
+			
+		dtc = fld.dr * fld.nlr / sqrt(fld.c2)
+		
+		dtnu = (fld.dr * fld.nlr)**2 / fld.nu
+		
+		
+		figure()
+		xlabel(xstr,fontsize='large')
+		ylabel('$\\log_{10}(\\Delta t)$',fontsize='large')
+		plot(r,log10(dtc),label=r'Sound Crossing Time, $t_{total}$ = %.2e' % sum(dtc))
+		plot(r,log10(dtnu),label=r'Viscous Crossing Time, $t_{total}$ = %.2e' % sum(dtnu))
+		legend(loc='best')
+		return
+	
 			
 	def draw_ellipse(self,num_ellipse,(xc,yc)=(0,0),Nph=500):
 		pgrid = linspace(0,2*pi,Nph)
@@ -831,7 +894,7 @@ def make_star_eccen_plots(none_dir,ind_dir,sg_dir,both_dir,tend):
 	show()
 	
 		
-def animate_real(q,t,xlims=None,ylims=None,Nph=500):
+def animate_real(q,t,xlims=None,ylims=None,Nph=500,ncontours=20):
 
 	if q not in ['dens','densp','vr','vph','vphp','E']:
 		print 'Not Valid Variable Name'
@@ -884,7 +947,12 @@ def animate_real(q,t,xlims=None,ylims=None,Nph=500):
 		fig.clear()
 		pcolormesh(x,y,dat[:,:,i])
 		colorbar()
+		contour(x,y,dat[:,:,i],ncontours,colors='k')
 		title(tstr + ',    t = ' + str(j))
+		if xlims != None:
+			xlim(xlims)
+		if ylims != None:
+			ylim(ylims)
 		fig.canvas.draw()
 		
 	
@@ -894,7 +962,7 @@ def animate_real(q,t,xlims=None,ylims=None,Nph=500):
 
 def compare(q,fld_list,logr=True,linestyle='-'):
 
-	if q not in ['u','v','sig','E','nu','c2','hor','omk','dbar','vybar','e','w','ex','ey']:
+	if q not in ['all','u','v','sig','E','nu','c2','hor','omk','dbar','vybar','e','w','ex','ey']:
 		print 'Not Valid Variable Name'
 		return
 		
@@ -908,6 +976,50 @@ def compare(q,fld_list,logr=True,linestyle='-'):
 	
 	
 	leg_str = [ str(i) for i in range(len(fld_list))]
+	
+	
+	if q=='all':
+	
+		fig,((ax_ru,ax_rv,ax_rs,ax_re),(ax_iu,ax_iv,ax_is,ax_ie)) = subplots(2,4,sharex='col')
+			
+		
+		ax_iu.set_xlabel(xname,fontsize='large')
+		ax_iv.set_xlabel(xname,fontsize='large')
+		ax_is.set_xlabel(xname,fontsize='large')
+		ax_ie.set_xlabel(xname,fontsize='large')
+	
+		
+		ax_ru.set_ylabel('$Re(u)$',fontsize='large')
+		ax_rv.set_ylabel('$Re(v)$',fontsize='large')
+		ax_rs.set_ylabel('$Re(\\sigma)$',fontsize='large')
+		ax_re.set_ylabel('$e$',fontsize='large')
+		
+		
+		ax_iu.set_ylabel('$Im(u)$',fontsize='large')
+		ax_iv.set_ylabel('$Im(v)$',fontsize='large')
+		ax_is.set_ylabel('$Im(\\sigma)$',fontsize='large')
+		ax_ie.set_ylabel('$\\omega/\\pi$',fontsize='large')
+		
+
+		ax_ru.set_title('u',fontsize='large')
+		ax_rv.set_title('v',fontsize='large')
+		ax_rs.set_title('$\\sigma$',fontsize='large')
+		ax_re.set_title('E',fontsize='large')
+
+
+
+		for i,fld in enumerate(fld_list):
+			ax_ru.plot(r[i],real(fld.u),label=r'$Re(u)$')
+			ax_rv.plot(r[i],real(fld.v),label=r'$Re(v)$')
+			ax_rs.plot(r[i],real(fld.sig),label=r'$Re(\\sigma)$')
+			ax_re.plot(r[i],abs(fld.E),label=r'$e$')
+	
+			ax_iu.plot(r[i],imag(fld.u),label=r'$Im(u)$')
+			ax_iv.plot(r,imag(fld.v),label=r'$Im(v)$')
+			ax_is.plot(r,imag(fld.sig),label=r'$Im(\\sigma)$')
+			ax_ie.plot(r,angle(fld.E)/pi,label=r'$\\omega/\\pi$')	
+		
+			
 		
 	if q=='u':
 		fig,(ax1,ax2)=subplots(2,sharex=True)
@@ -1053,11 +1165,13 @@ def E_pred(r,Ei,Eo,beta,alpha_b,alpha_s,gamma_s,gamma_b,bc,ogilvie=False):
 # bc = 0 -> E(ri) = Ei & E(ro) = Eo
 # bc = 1 -> E'(ri) = 0 & E(ro) = Eo
 # bc = 2 -> E(ri) = Ei & E'(ro) = 0
+# bc = 3 -> E(ro) = Eo & E'(ro) = 0 
+# bc = 4 -> E(ri) = Ei & E'(ri) = 0 
 
 
 	ri = r[0]
 	ro = r[-1]
-	chi = ro/ri
+	chi = ri/ro
 #	eta = (1 + 1j*nu)/(1 + nu*nu)
 #	gam = sqrt( 1 + beta*beta/4 + beta*(1 - eta))
 
@@ -1095,23 +1209,42 @@ def E_pred(r,Ei,Eo,beta,alpha_b,alpha_s,gamma_s,gamma_b,bc,ogilvie=False):
 # 		print 'Not a valid boundary condition'
 # 		return
 		
-	if bc not in [0,1,2]:
+	if bc not in [0,1,2,3,4]:
 		print 'Not a valid b.c, using bc=0 as default'
 		bc = 0
 		
 		
+# 	if bc == 0:
+# 		A = (Ei - Eo*pow(chi,-ao))/(1 - pow(chi,ai-ao))
+# 		B = (Eo - Ei*pow(chi,ai))/(1- pow(chi,ai-ao))
+# 		
+# 	if bc==1:
+# 		A = -Eo*pow(chi,1-ao)/(1 - pow(chi,1+ai-ao))
+# 		B = Eo/(1 - pow(chi,1+ai-ao))
+# 	
+# 	if bc==2:
+# 		A = Ei/(1-pow(chi,ai-ao-1))
+# 		B = -Ei*pow(chi,ai-1)/(1- pow(chi,ai-ao-1))
+		
+	
 	if bc == 0:
-		A = (Ei - Eo*pow(chi,-ao))/(1 - pow(chi,ai-ao))
-		B = (Eo - Ei*pow(chi,ai))/(1- pow(chi,ai-ao))
+		A = (Ei - Eo*pow(chi,ao))/(1 - pow(chi,ao-ai))
+		B = (Eo - Ei*pow(chi,-ai))/(1- pow(chi,ao-ai))
 		
 	if bc==1:
-		A = -Eo*pow(chi,1-ao)/(1 - pow(chi,1+ai-ao))
-		B = Eo/(1 - pow(chi,1+ai-ao))
+		A = Eo*ao*pow(chi,ao)/(ao*pow(chi,ao-ai)-ai)
+		B = -Eo*ai/(ao*pow(chi,ao-ai)-ai)
 	
 	if bc==2:
-		A = Ei/(1-pow(chi,ai-ao-1))
-		B = -Ei*pow(chi,ai-1)/(1- pow(chi,ai-ao-1))
-		
+		A = Ei*ao/(ao - ai*pow(chi,ao-ai))
+		B = -Ei*ai*pow(chi,-ai)/(ao - ai*pow(chi,ao-ai))
+	
+	if bc==3:
+		A = Eo*ao*pow(chi,-ai)/(ao-ai)
+		B = -Eo*ai/(ao-ai)
+	if bc==4:
+		A = Ei*ao/(ao-ai)
+		B = -Ei*ai*pow(chi,-ao)/(ao-ai)
 		
 		
 	print 'Inner coefficient: ', A
@@ -1143,34 +1276,46 @@ def E_pred(r,Ei,Eo,beta,alpha_b,alpha_s,gamma_s,gamma_b,bc,ogilvie=False):
 	
 	
 	
-def eccen_plots(r,bvals,Ei,Eo,alpha_b,alpha_s,gamma_s,gamma_b,bc,linestyle='-',logscale=True,yscale=False):
+def eccen_plots(r,bvals,Ei,Eo,alpha_b,alpha_s,gamma_s,gamma_b,bc,linestyle='-',logscale=True,yscale=False,ogilvie=False):
 	
-	epred = [E_pred(r,Ei,Eo,b,alpha_b,alpha_s,gamma_s,gamma_b,bc) for b in bvals]
-	
-	if bc not in [0,1,2]:
+	epred = [E_pred(r,Ei,Eo,b,alpha_b,alpha_s,gamma_s,gamma_b,bc,ogilvie=ogilvie) for b in bvals]
+
+		
+	nu_str = '$\\alpha$ = %.1e' % alpha_s
+	nu_str += ' and $d\ln\\nu/d\lnr$ = %.2f' % gamma_s
+	if bc not in [0,1,2,3,4]:
 		bc = 0
 	
 	if bc==0:
-		tstr = '$E(r_i)=$'+str(Ei)+' and $E(r_o)=$'+str(Eo)
+		tstr = '$E(r_i)=$'+str(Ei)+' and $E(r_o)=$'+str(Eo) + ', '+ nu_str
 	if bc==1:
-		tstr = '$d_r E(r_i)= 0 $ and $E(r_o)=$'+str(Eo)
+		tstr = '$d_r E(r_i)= 0 $ and $E(r_o)=$'+str(Eo)+ ', '+ nu_str
 	if bc==2:
-		tstr = '$E(r_i)=$'+str(Ei)+' and $d_rE(r_o)=0$'
-	
+		tstr = '$E(r_i)=$'+str(Ei)+' and $d_rE(r_o)=0$'+ ', '+ nu_str
+	if bc==3:
+		tstr = '$E(r_o)=$'+str(Eo)+' and $d_rE(r_o)=0$'+ ', '+ nu_str
+	if bc==4:
+		tstr = '$E(r_i)=$'+str(Ei)+' and $d_rE(r_i)=0$'+ ', '+ nu_str
 	
 	fig,(ax1,ax2)=subplots(2,sharex=True)
 	ax1.set_title(tstr)
 	ax2.set_ylabel('$\\omega/ \\pi$')
 	
 	if logscale:
-		ax1.set_ylabel('$\ln (e/e_o)$')
+		if bc == 2 or bc==4:
+			ax1.set_ylabel('$\ln (e/e_i)$')
+		else:
+			ax1.set_ylabel('$\ln (e/e_o)$')
 		ax2.set_xlabel('$\ln r$')
 	else:
-		ax1.set_ylabel('$e/e_o$')
+		if bc==2 or bc==4:
+			ax1.set_ylabel('$e/e_i$')
+		else:
+			ax1.set_ylabel('$e/e_o$')
 		ax2.set_xlabel('$r$')
 	
 	for i,ep in enumerate(epred):
-		if bc==2:
+		if bc==2 or bc==4:
 			dat = abs(ep)/abs(ep[0])
 		else:
 			dat = abs(ep)/abs(ep[-1])
@@ -1182,7 +1327,7 @@ def eccen_plots(r,bvals,Ei,Eo,alpha_b,alpha_s,gamma_s,gamma_b,bc,linestyle='-',l
 			ax1.plot(r,dat,linestyle,label='$\\beta=$'+str(bvals[i]))
 	
 	
-	ax1.legend(loc='lower right')
+	ax1.legend(loc='best')
 #	gca().set_color_cycle(None)	
 	for i,ep in enumerate(epred):
 		if logscale:
@@ -1228,35 +1373,78 @@ def poisson_kernel(r,hor,eps):
 	
 	return kernel
 
-def compare_eccen_pred(r,edat, epred,epredog,tstr,rsample=200,logr=False):
+def compare_eccen_pred(r,edat, epred,epredog,tstr,rsample=200,logr=False,norm=False,secondtstr=None):
 	
 	if logr:
 		xname = '$\ln r$'
 	else:
 		xname = '$r$'
+	
+	if norm:
+		epnorm = abs(epred).max()
+		eponorm = abs(epredog).max()
+		ednorm = abs(edat).max()
 		
-	fig,(ax1,ax2)=subplots(2,sharex=True)
+	else:
+		epnorm = 1
+		eponorm = 1
+		ednorm = 1
+
+	fig,((ax1,ax3),(ax2,ax4)) = subplots(2,2,sharex='col')
+		
+#	fig,(ax1,ax2)=subplots(2,sharex=True)
 	ax1.set_title(tstr,fontsize='large')
-	ax1.set_ylabel('$e/e_{max}$',fontsize='large')
+	
+	if secondtstr != None:
+		ax3.set_title(secondtstr,fontsize='large')
+		
+	if norm:
+		ax1.set_ylabel('$e/e_{max}$',fontsize='large')
+	else:
+		ax1.set_ylabel('$e$',fontsize='large')
+		
 	ax2.set_ylabel('$\\omega / \\pi$',fontsize='large')
 	ax2.set_xlabel(xname,fontsize='large')
 	
-	ax1.plot(r,abs(epred)/abs(epred).max(),'b-',label=r'Prediction')
-	ax1.plot(r,abs(epredog)/abs(epredog).max(),'r-',label=r'Ogilvie Prediction')
-	ax1.plot(r[::rsample],abs(edat[::rsample])/abs(edat).max(),'kx',label=r'Data')
+	
+	ax4.set_xlabel(xname,fontsize='large')
+	
+	
+	ax3.set_ylabel('$e_y$',fontsize='large')
+	ax4.set_ylabel('$e_x$',fontsize='large')	
+
+	ax1.plot(r,abs(epred)/epnorm,'b-',label=r'Prediction')
+	ax1.plot(r,abs(epredog)/eponorm,'r-',label=r'Ogilvie Prediction')
+	ax1.plot(r[::rsample],abs(edat[::rsample])/ednorm,'kx',label=r'Data')
 	ax2.plot(r,angle(epred)/pi,'b-',label=r'Prediction')
 	ax2.plot(r,angle(epredog)/pi,'r-',label=r'Ogilvie Prediction')
 	ax2.plot(r[::rsample],angle(edat[::rsample])/pi,'kx',label=r'Data')
 	
-	ax2.legend(loc='best')
+	
+	
+	
+	ax3.plot(r,imag(epred),'b-',label=r'Prediction')
+	ax3.plot(r,imag(epredog),'r-',label=r'Ogilvie Prediction')
+	ax3.plot(r[::rsample],imag(edat[::rsample]),'kx',label=r'Data')
+	
+	ax4.plot(r,real(epred),'b-',label=r'Prediction')
+	ax4.plot(r,real(epredog),'r-',label=r'Ogilvie Prediction')
+	ax4.plot(r[::rsample],real(edat[::rsample]),'kx',label=r'Data')
+	
+	ax4.legend(loc='best')
 	
 	return 
 
-def prediction_results():
-	beta_vals = [-1.5, -.75, 0, .75, 1.5]
-	salpha_vals = [ .3, .03, .003, .0003]
-	balpha_vals = [ -.2, -.02, -.002, -.0002]
+def prediction_results(bc,ei=0,eo=.1,normalize=False):
+	beta_vals = [-1.5, -.75, -.5, 0]
+	salpha_vals = [ .03, .003, .0003,.00003]
+	balpha_vals = [ -.02, -.002, -.0002,-.00002]
 	
+	
+# 	if bc in [2,4]:
+# 		ei = eo
+# 		eo = 0
+# 		
 	
 		
 	fld=[]
@@ -1266,6 +1454,21 @@ def prediction_results():
 	epredog=[]
 	eresids=[]
 	wresids=[]
+	
+	
+	
+	if bc==0:
+		bctstr = '$E(r_i)=$'+str(ei)+' and $E(r_o)=$'+str(eo) 
+	if bc==1:
+		bctstr = '$d_r E(r_i)= 0 $ and $E(r_o)=$'+str(eo)
+	if bc==2:
+		bctstr = '$E(r_i)=$'+str(ei)+' and $d_rE(r_o)=0$'
+	if bc==3:
+		bctstr = '$E(r_o)=$'+str(eo)+' and $d_rE(r_o)=0$'
+	if bc==4:
+		bctstr = '$E(r_i)=$'+str(ei)+' and $d_rE(r_i)=0$'
+	
+	
 	
 	for i in range(len(beta_vals)):
 		for j in range(len(salpha_vals)):
@@ -1280,20 +1483,199 @@ def prediction_results():
 			print dir_name
 			tfld=Field(1,outdir=dir_name)
 			fld.append(tfld)
-			tepred = E_pred(tfld.nlr,0,.1,b,balpha_vals[j],a,tfld.ind_nu,tfld.ind_nu,0)
-			tepredog = E_pred(tfld.nlr,0,.1,b,balpha_vals[j],a,tfld.ind_nu,tfld.ind_nu,0,ogilvie=True)
+			tepred = E_pred(tfld.nlr,ei,eo,b,balpha_vals[j],a,tfld.ind_nu,tfld.ind_nu,bc)
+			tepredog = E_pred(tfld.nlr,ei,eo,b,balpha_vals[j],a,tfld.ind_nu,tfld.ind_nu,bc,ogilvie=True)
 			epred.append(tepred)
 			epredog.append(tepredog)
 			
 			tstr = '$\\beta = %.2f$' % b
 			tstr += ', $\\alpha = %.2e$' % a
-			
+						
 			eresids.append(l2norm(abs(tepred)/abs(tepred).max() - abs(tfld.E)/abs(tfld.E).max()))
 			wresids.append(l2norm(angle(tepred)/pi - angle(tfld.E))/pi)
 			
-			compare_eccen_pred(tfld.r,tfld.E,tepred,tepredog,tstr,rsample=100)
+			compare_eccen_pred(tfld.r,tfld.E,tepred,tepredog,tstr,rsample=100,norm=normalize,logr=True,secondtstr=bctstr)
 	
 		
 	return fld, epred, beta, alpha,eresids,wresids		
 			
+
+def fit_growth_rates(tstart=None,tend=None,outdir=''):
+	dat = loadtxt(outdir + 'history.dat')
+	fig, ((ax1,ax2),(ax3,ax4)) = subplots(2,2)
+	
+	
+	if tend != None:
+		dat=dat[dat[:,0]<=tend,:]
+	if tstart != None:
+		dat = dat[dat[:,0]>=tstart,:]
+		
+	
+	evals = dat[:,7]
+	
+	t = dat[:,0]
+	
+	norm = len(t)
+	
+	freq = 2*pi*fft.rfftfreq(len(dat[:,0]),diff(dat[:,0]).mean())
+	
+	s = polyfit(t,log(evals),1)
+	
+	growth_rate = s[0]
+	
+	expfit = exp( s[1] + t*s[0])
+	
+	
+	ft = fft.rfft(evals/expfit) 
+	
+	ax3.set_title('Residual Power Spectrum',fontsize='large')
+	ax3.set_xlabel('$\log_{10} \\Omega_p$',fontsize='large')
+	ax3.set_ylabel('FT power',fontsize='large')
+	ax3.plot(log10(freq),abs((ft/norm)**2),'-x')
+	
+	
+	
+	ind = abs(ft**2) == abs(ft**2)[1:].max()
+	
+	omega = freq[ind][0]
+	
+	
+	for i,x in enumerate(ft):
+		if i != 0 and freq[i] != omega:
+			ft[i] = 0	
+			
+	efit = fft.irfft(ft,len(t))
+
+
+	
+	
+	efit_final= efit*expfit
+	
+	
+	
+	
+	
+	
+	
+	ax1.set_title('Total Fit',fontsize='large')
+	ax1.set_xlabel('t',fontsize='large')
+	ax1.set_ylabel('e',fontsize='large')
+	ax1.plot(t,evals)
+	ax1.plot(t,expfit,'--',label=r'$\gamma$ = %.2e' % growth_rate)
+	ax1.plot(t,efit_final,label=r'$\Omega_p$ = %.2e' % omega )
+	ax1.legend(loc='best')
+	
+	
+	ax2.set_title('One Frequency Pattern Speed Fit',fontsize='large')
+	ax2.set_xlabel('t',fontsize='large')
+	ax2.set_ylabel('e/ exponential fit',fontsize='large')
+	ax2.plot(t,evals/expfit)
+	ax2.plot(t,efit,label=r'$\Omega_p$ = %.2e' % omega)
+	
+	
+	
+	
+	
+	ax4.set_title('Exponential fit',fontsize='large')
+	ax4.set_xlabel('t',fontsize='large')
+	ax4.set_ylabel('e',fontsize='large')
+	ax4.plot(t,evals)
+	ax4.plot(t,expfit,label=r'$d\ln e/ dt$ = %.2e' % growth_rate)
+	
+	
+	
+	
+	
+	fig2, ((ax12,ax22),(ax32,ax42)) = subplots(2,2)
+	
+	
+	
+	if tstart == None:
+		rs = dat[1:,4]
+		t=t[1:]
+	else:
+		rs = dat[:,4]
+		t=t[:]
+		
+		
+	
+	s_star = polyfit(t,log(rs),1)
+	
+	growth_rate_star = s_star[0]
+	
+	expfit_star = exp( s_star[1] + t*s_star[0])
+	
+	
+	ft_star = fft.rfft(rs/expfit_star) 
+	
+	ax32.set_title('Residual Power Spectrum',fontsize='large')
+	ax32.set_xlabel('$\log_{10} \\Omega_\star$',fontsize='large')
+	ax32.set_ylabel('FT power',fontsize='large')
+	ax32.plot(log10(freq),abs((ft_star/norm)**2),'-x')
+
+
+	maxft = sort(abs(ft_star**2)[1:])[::-1][:2]
+
+		
+	ind_star_1 = abs(ft_star**2) == maxft[0]
+	ind_star_2 = abs(ft_star**2) == maxft[1]
+
+	omega_star_1 = freq[ind_star_1][0]
+	omega_star_2 = freq[ind_star_2][0]
+	
+	omstr_star = 'low $\Omega_\star$ = %.2e' % min([omega_star_1,omega_star_2])
+	omstr_star += ', high $\Omega_\star$ = %.2e' % max([omega_star_1,omega_star_2])
+	
+	print omega_star_1,omega_star_2
+	
+	for i,x in enumerate(ft_star):
+		if i != 0 and freq[i] != omega_star_1 and freq[i] != omega_star_2:
+			ft_star[i] = 0	
+	
+
+	efit_star = fft.irfft(ft_star,len(t))
+	
+	
+	efit_final_star = efit_star*expfit_star
+	
+	
+	
+	
+	
+	
+	
+	ax12.set_title('Total Fit',fontsize='large')
+	ax12.set_xlabel('t',fontsize='large')
+	ax12.set_ylabel('$r_\star$',fontsize='large')
+	ax12.plot(t,rs)
+	ax12.plot(t,expfit_star,'--',label=r'$\gamma_\star$ = %.2e' % growth_rate_star)
+	ax12.plot(t,efit_final_star,label=omstr_star )
+	ax12.legend(loc='best')
+	
+	
+	ax22.set_title('Two Frequency Pattern Speed Fit',fontsize='large')
+	ax22.set_xlabel('t',fontsize='large')
+	ax22.set_ylabel('$r_\star$ / exponential fit',fontsize='large')
+	ax22.plot(t,rs/expfit_star)
+	ax22.plot(t,efit_star,label=omstr_star)
+	
+	
+	
+	
+	
+	ax42.set_title('Exponential fit',fontsize='large')
+	ax42.set_xlabel('t',fontsize='large')
+	ax42.set_ylabel('$r_\star$',fontsize='large')
+	ax42.plot(t,rs)
+	ax42.plot(t,expfit_star,label=r'$d\ln e/ dt$ = %.2e' % growth_rate_star)
+	
+	
+	
+	return (growth_rate, omega),(growth_rate_star,omega_star_1,omega_star_2)
+	
+	
+	
+	
+	
+
 		

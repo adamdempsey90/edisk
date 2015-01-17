@@ -1,5 +1,5 @@
 EXECUTABLE=edisk
-SOURCES=init.c alloc.c main.c readinputs.c utils.c output.c boundary.c restart.c
+SOURCES=init.c alloc.c main.c readinputs.c utils.c output.c boundary.c restart.c history.c
 HEADER=edisk.h rk45.h
 
 LDFLAGS=-llapack -lblas -lm -lgomp

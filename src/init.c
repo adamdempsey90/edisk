@@ -75,7 +75,27 @@ int init_fld(Mode *fld) {
 	int restart_status = restart(fld);	
 	if (restart_status == -1) return -1;
 #else
+
+
+#ifndef INFINITE
 	user_ic(fld);
+#endif
+
+/* Set B.C */	
+/* Grab the inner and outer b.c's from the initialized profile. */
+
+	u_in_bc = 0; // I*(bfld->v[istart])*.1 * cexp(I*0);
+	u_out_bc =  I*(bfld->v[iend-1])*.1 * cexp(I*0);
+	
+	v_in_bc = 0; //.5*(bfld->v[istart])*.1* cexp(I*0);
+	v_out_bc = .5*(bfld->v[iend-1])*.1 * cexp(I*0);
+	
+//	s_in_bc = fld->sig[istart];
+	s_in_bc = 0;
+	s_out_bc = fld->sig[iend-1];
+//	s_out_bc = fld->sig[iend-1];
+	
+
 #endif
 #ifdef COMPANION	
 	init_cstar(fld);
@@ -137,7 +157,7 @@ void user_ic(Mode *fld) {
 		r = fld->r[i];
 		E0 = e0*cexp(I*w); //* cexp(I*drw*lr);
 		
-		E0 = E0 * cos( .5*M_PI*(ro - r)/(ro-ri));
+//		E0 = E0 * cos( .5*M_PI*(ro - r)/(ro-ri));
 //		
 //		E0 = E0 * exp(-(lr-r0)*(lr-r0)/(sigma*sigma));
 //		E0 = 0;
@@ -151,22 +171,6 @@ void user_ic(Mode *fld) {
 		fld->sig[i] = 0;
 	}
 
-/* Set B.C */	
-/* Grab the inner and outer b.c's from the initialized profile. */
-
-//	u_in_bc = fld->u[istart];
-	u_in_bc = 0;
-	u_out_bc = fld->u[iend-1];
-	
-//	v_in_bc = fld->v[istart];
-	v_in_bc = 0;
-	v_out_bc = fld->v[iend-1];
-	
-//	s_in_bc = fld->sig[istart];
-	s_in_bc = 0;
-	s_out_bc = fld->sig[iend-1];
-//	s_out_bc = fld->sig[iend-1];
-	
 // 	for(i=0;i<istart;i++) {
 // 		fld->u[i] = u_in_bc;
 // 		fld->v[i] = v_in_bc;

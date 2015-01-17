@@ -35,6 +35,92 @@ void f_2_fld(Mode *fld, double complex *q) {
 }
 
 
+double c_area_integrate(double *r, double complex *q1, double complex *q2, int indxstart, int indxend) {
+	int i;
+	
+	double k1, k2, ans;
+	
+	ans = 0;
+
+	for(i=indxstart;i<indxend;i++) {
+	
+		if (q1 == NULL) {
+		
+			if (q2==NULL) {
+				
+				k1 = 0;
+				k2 = 0;
+			}
+			else {
+				
+				k1 = r[i]*r[i]*creal(q2[i]);
+				k2 = r[i+1]*r[i+1]*creal(q2[i+1]);
+				
+			}
+		}
+		else {
+			if (q2 == NULL) {
+				k1 = r[i]*r[i]*creal(q1[i]);
+				k2 = r[i+1]*r[i+1]*creal(q1[i+1]);
+			}
+			else {
+				k1 = r[i]*r[i]*creal(q1[i]*conj(q2[i]));
+				k2 = r[i+1]*r[i+1]*creal(q1[i+1]*conj(q2[i+1]));
+			
+			}
+		}
+	
+		
+		
+		ans += k1+k2;
+	}
+
+	return ans*(Params->dr);
+}
+
+
+double r_area_integrate(double *r, double *q1, double *q2, int indxstart, int indxend) {
+	int i;
+	
+	double k1, k2, ans;
+	
+	ans = 0;
+	for(i=indxstart;i<indxend;i++) {
+	
+	
+	
+		if (q1 == NULL) {
+		
+			if (q2==NULL) {
+				
+				k1 = 0;
+				k2 = 0;
+			}
+			else {
+				
+				k1 = r[i]*r[i]*q2[i];
+				k2 = r[i+1]*r[i+1]*q2[i+1];
+				
+			}
+		}
+		else {
+			if (q2 == NULL) {
+				k1 = r[i]*r[i]*q1[i];
+				k2 = r[i+1]*r[i+1]*q1[i+1];
+			}
+			else {	
+				k1 = r[i]*r[i]*q1[i]*q2[i];
+				k2 = r[i+1]*r[i+1]*q1[i+1]*q2[i+1]; 
+			}
+		}
+		
+		
+		
+		ans += k1+k2;
+	}
+
+	return ans*(Params->dr);
+}
 
 void matmat(double complex *A, double complex *B, double complex *C, 
 					double complex alpha, double complex beta) 

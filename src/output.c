@@ -92,7 +92,7 @@ void output_params(void) {
 		\th0 = %lg\n \
 		\tflare index = %lg\n \
 		\talpha shear = %lg\n \
-		\talpha bulk = %lg\n \
+		\talpha bulk = %lg \n \
 		\tsigma0 = %lg\n \
 		\tsigma index = %lg\n \
 		\tMdisk = %lg\n \
@@ -111,6 +111,7 @@ void output_params(void) {
 		\ttau = %lg\n \
 		\tendt = %lg\n \
 		\tnumf = %d\n \
+		\thist dt = %d\n \
 		\ttol = %lg\n \
 		\toutputdir = %s\n",
 		NR,
@@ -137,6 +138,7 @@ void output_params(void) {
 		Params->tau,
 		Params->endt,
 		Params->numf,
+		Params->hist_dt,
 		Params->tol,
 		Params->outdir);
 	fclose(f);

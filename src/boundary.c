@@ -26,14 +26,25 @@ void set_bc(Mode *fld) {
 
 		
 //		fld->u[i] = -abs(creal(fld->u[istart]))-I*abs(cimag(fld->u[istart]));
-		fld->u[i] = -abs(fld->u[istart]);
+
+
+//		fld->u[i] = -sqrt((fld->u[istart])*conj((fld->u[istart])));
+//		fld->u[i] = -fabs(fld->u[istart]);
+
+		fld->u[i] = fld->u[istart];
 		fld->v[i] = fld->v[istart];
 		fld->sig[i] = fld->sig[istart];
-//		fld->sig[i] = 0;
+
+
 //		fld->u[i+iend] = abs(creal(fld->u[iend-1]))+I*abs(cimag(fld->u[iend-1]));
-		fld->u[i+iend] = abs(fld->u[iend-1]);
+
+
+
+//		fld->u[i+iend] = -sqrt((fld->u[iend-1])*conj((fld->u[iend-1])));		
+		
+//		fld->u[i+iend] = fabs(fld->u[iend-1]);
+		fld->u[i+iend] = fld->u[iend-1];
 		fld->v[i+iend] = fld->v[iend-1];
-//		fld->sig[i+iend] = 0;
 		fld->sig[i+iend] = fld->sig[iend-1];
 			
 // 		fld->u[i] = u_in_bc;
@@ -66,7 +77,16 @@ void user_bc(Mode *fld) {
 */
 	int i;
 	double divv;
+	double e0 = .1;
 	
+	
+// 	fld->u[0] = I*(bfld->v[0])*e0;
+// 	fld->v[0] = .5*(bfld->v[0])*e0;
+// 	fld->sig[0] = 0;
+// 	
+// 	fld->u[iend] = fld->u[iend-2];
+// 	fld->v[iend] = -I*(fld->u[iend]);
+// 	fld->sig[iend] = 0;
 	
 //	fld->u[0] = -(fld->u[1]);
 //	fld->v[0] = -(fld->v[1]);

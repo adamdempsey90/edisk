@@ -80,7 +80,7 @@ typedef struct Parameters {
 			rcmax;
 			
 	double dr;
-	int numf;
+	int numf, hist_dt;
 	char outdir[100];
 	
 	double *hor, *nus, *nub, *c2;
@@ -128,6 +128,15 @@ void matsolve(double complex *A, double complex *B);
 
 double bessk0(double x);
 
+double c_area_integrate(double *r, double complex *q1, double complex *q2, int indxstart, int indxend);
+double r_area_integrate(double *r, double *q1, double *q2, int indxstart, int indxend);
+
+void history(double t, double dt, Mode *fld);
+void init_history(void);
+void free_history(void);
+
+
+
 #if defined(WAVEKILLBC) || defined(KILLIN) || defined(KILLOUT)
 void wavekillbc(Mode *fld,double dt);
 #endif
@@ -149,7 +158,7 @@ void algo(double t, double complex *y, double complex *f, Mode *fld);
 #endif
 
 #ifdef TRANSPORT	
-void transport_step(*h,fld);
+void transport_step(double dt,Mode *fld);
 #endif
 
 #ifdef SPLIT

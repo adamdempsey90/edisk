@@ -8,9 +8,9 @@ with open(input_directory + 'params.in','r') as f:
 	lines = f.readlines()
 
 
-beta_vals = [-1.5, -.75, 0, .75, 1.5]
-salpha_vals = [ .3, .03, .003, .0003]
-balpha_vals = [ -.2, -.02, -.002, -.0002]
+beta_vals = [-1.5, -.75, -.5, 0]
+salpha_vals = [ .03, .003, .0003,.00003]
+balpha_vals = [ -.02, -.002, -.0002,-.00002]
 
 
 for i in range(len(beta_vals)):

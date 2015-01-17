@@ -47,8 +47,8 @@ void wavekillbc(Mode *fld,double dt)
 			tau /= R; 
 			dtdtau = dt/tau;
 			
-			fld->u[i] /= (1+ dtdtau);
-			fld->v[i] /= (1+dtdtau);
+//			fld->u[i] /= (1+ dtdtau);
+//			fld->v[i] /= (1+dtdtau);
 			fld->sig[i] /= (1+dtdtau);
 			
 			

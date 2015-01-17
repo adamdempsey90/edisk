@@ -194,14 +194,21 @@ void coefficient_matrix(Mode *fld) {
 		
 // 		indx = col + 3*row + (i-istart)*9
 		indx = (i-istart)*9;
-		
-		
-		B[indx + 3*0 + 0] =  (nu/r)*(4.*gam-2.)/3;
-		B[indx + 3*0 + 1] =  (-nu/r)*(I*m/3);
+	
+	
+
+
+	
+	
+		B[indx + 3*0 + 0] =  nus*2*(gams+1)/r - (2./3)*(nus*(gams+1)/r) +   nub*(gamb+1)/r;
+		B[indx + 3*0 + 1] =  -nus*I*m/r -  (2./3)*(-nus*I*m/r) +  -nub*I*m/r;
 		B[indx + 3*0 + 2] =  -c2;
-		B[indx + 3*1 + 0] = (-nu/r)*I*m/3; 
-		B[indx + 3*1 + 1] = (nu/r)*gam;
-		B[indx + 3*1 + 2] = (nu/r)*(omk*dlomk);
+		
+		B[indx + 3*1 + 0] = -nus*I*m/r - (2./3)*(-nus*I*m/r) +  -nub*I*m/r; 
+		B[indx + 3*1 + 1] = nus*(gams+1)/r;
+		B[indx + 3*1 + 2] = nus*dlomk*omk;
+		
+		
 		B[indx + 3*2 + 0] = -1.0;
 		B[indx + 3*2 + 1] = 0;
 		B[indx + 3*2 + 2] = 0;

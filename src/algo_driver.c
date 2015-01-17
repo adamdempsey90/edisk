@@ -12,13 +12,15 @@ int algo_driver( double *h, double *t, Mode *fld) {
 #ifdef TRANSPORT	
 	transport_step(*h,fld);
 #endif
-#ifdef SPLIT	
-	rktvd_step(*h,*t,fld); 
-#endif
 
 #ifndef INFINITE
 	set_bc(fld);
 #endif
+#ifdef SPLIT	
+	rktvd_step(*h,*t,fld); 
+#endif
+
+
 	cranknicholson_step(*h,*t,fld);
 
 #ifdef SELFGRAV

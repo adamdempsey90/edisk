@@ -36,7 +36,7 @@ void read_inputs(char *inputdir) {
 			endt,
 			tol;
 	
-	int numf;
+	int numf,hist_dt;
 	
 	size_t len = strlen(inputdir);
 	if (inputdir[len-1] != '/' && len != 0) inputdir[len] = '/';
@@ -76,6 +76,7 @@ void read_inputs(char *inputdir) {
 	fscanf(f,"tau =  %lg \n",&tau);
 	fscanf(f,"endt =  %lg \n",&endt);
 	fscanf(f,"numf =  %d \n",&numf);
+	fscanf(f,"hist dt =  %d \n",&hist_dt);
 	fscanf(f,"tol =  %lg \n",&tol);
 	fscanf(f,"outputdir = %s \n",outdir);
 		
@@ -102,6 +103,7 @@ void read_inputs(char *inputdir) {
 	Params->tau = tau;
 	Params->endt = endt;
 	Params->numf = numf;
+	Params->hist_dt = hist_dt;
 	Params->tol = tol;
 	Params->dr  = (rmax - rmin) / NR;
 	Params->rs *= (Params->h);
@@ -164,6 +166,7 @@ void read_inputs(char *inputdir) {
 		\ttau = %lg\n \
 		\tendt = %lg\n \
 		\tnumf = %d\n \
+		\thist dt = %d\n \
 		\ttol = %lg\n \
 		\toutputdir = %s\n",
 		NR,
@@ -190,6 +193,7 @@ void read_inputs(char *inputdir) {
 		Params->tau,
 		Params->endt,
 		Params->numf,
+		Params->hist_dt,
 		Params->tol,
 		Params->outdir);
 		

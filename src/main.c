@@ -7,7 +7,7 @@ void print_time(double t);
 int check_termination(void);
 
 int main(int argc, char *argv[]) {
-	int i;
+	int i,ih;
 	char inputdir[100];
 	clock_t tic, toc;
 	tic = clock();
@@ -32,6 +32,7 @@ int main(int argc, char *argv[]) {
 	printf("Reading Inputs from %s...\n",inputdir);
 	read_inputs(inputdir);
 	init_output(Params->outdir);
+	init_history();
 	alloc_fld(fld);
 	
 	int restart_status = init_fld(fld);
@@ -56,7 +57,7 @@ int main(int argc, char *argv[]) {
 
 	output_disk(fld->lr,fld->r);
 	output(fld);
-	
+
 
 
 	double h = (Params->cfl) * (Params->rcmax) * (Params->dr) / (Params->cmax);
@@ -64,11 +65,13 @@ int main(int argc, char *argv[]) {
 
   	double 	t=Params->t0;
   	double dt;
-  	i=1;
+  	i=1; ih =1;
 	int term_status=0;
 	int numstep=0; double avgdt=0;
 
 
+
+	history(t,0,fld);
 	MPI_Printf("Starting Time Loop\n");	
 	
 #ifdef INFINITE
@@ -119,6 +122,11 @@ int main(int argc, char *argv[]) {
 #endif
 			i++;
 		 }
+		 
+		 if( t >= Params->t0 + ih *(Params->hist_dt)){ 			
+			history(t,dt,fld);
+			ih++;
+		 }
 	 
   
 		term_status = check_termination();
@@ -146,6 +154,7 @@ int main(int argc, char *argv[]) {
 	free_poisson();
 #endif
 
+	free_history();
    	free_fld(fld);
     toc = clock(); 
     print_time( (double)(toc - tic) / CLOCKS_PER_SEC );

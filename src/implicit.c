@@ -30,17 +30,28 @@ void get_bc_matrix(int type, double complex u, double complex v, double complex 
 CNmats *cn_mats;
 							
 void cranknicholson_step(double dt, double t, Mode *fld) {
+
+#ifdef INFINITE
+	int indx_start = istart;
+	int indx_end = iend;
+#else
+	int indx_start = 0;
+	int indx_end = NTOT;
+#endif
+
+
+
 	int i;
 	
 	int ir,ic;
 	
 
 /* Step 1. Forward Solve */	
-	for(i=0;i<NTOT;i++) {
+	for(i=indx_start;i<indx_end;i++) {
 	
 	
 /* Step 1.1 Get the A,B,C, and K block matrices 	*/
-		if (i!=0 && i!=NTOT-1) {
+		if (i!=indx_start && i != (indx_end-1) ) {
 			get_matrices(i-istart,dt,fld->r[i], fld->m,Params->nus[i],Params->nub[i],
 							Params->c2[i],bfld->omk[i],bfld->dlomk[i],
 							fld->u[i-1],fld->u[i],fld->u[i+1],
@@ -55,7 +66,7 @@ void cranknicholson_step(double dt, double t, Mode *fld) {
 		
 /* Step 1.2 Setup UK matrix and solve for HG matrix  */
 
-		if (i!=0) matvec(&L[0][0],&(cn_mats[i-1].G[0]),&K[0],-1,1);
+		if (i!=indx_start) matvec(&L[0][0],&(cn_mats[i-1].G[0]),&K[0],-1,1);
 
 
 
@@ -65,7 +76,7 @@ void cranknicholson_step(double dt, double t, Mode *fld) {
 		}
 			
 		
-		if (i != 0) matmat(&L[0][0],&(cn_mats[i-1].H[0][0]),&M[0][0],1,1);
+		if (i != indx_start) matmat(&L[0][0],&(cn_mats[i-1].H[0][0]),&M[0][0],1,1);
 		
 		
 		matsolve(&M[0][0],&UK[0][0]);		
@@ -82,13 +93,15 @@ void cranknicholson_step(double dt, double t, Mode *fld) {
 	}
 /* Step 2. Backward Subsitution */
 
-	cn_mats[NTOT-1].G[0] = fld->u[NTOT-1];
-	cn_mats[NTOT-1].G[1] = fld->v[NTOT-1];
-	cn_mats[NTOT-1].G[2] = fld->sig[NTOT-1];
+// 	cn_mats[indx_end-1].G[0] = fld->u[indx_end-1];
+// 	cn_mats[indx_end-1].G[1] = fld->v[indx_end-1];
+// 	cn_mats[indx_end-1].G[2] = fld->sig[indx_end-1];
 	
-
+	fld->u[indx_end-1] = cn_mats[indx_end-1].G[0];
+	fld->v[indx_end-1] = cn_mats[indx_end-1].G[1];
+	fld->sig[indx_end-1] = cn_mats[indx_end-1].G[2];
 		
-	for(i=NTOT-2;i>0;i--) {
+	for(i=indx_end-2;i>indx_start;i--) {
 	
 /* Step 2.1 Get solution variables, stored in G */	
 		matvec(&(cn_mats[i].H[0][0]),&(cn_mats[i+1].G[0]),&(cn_mats[i].G[0]),1,1);
@@ -120,6 +133,8 @@ void get_matrices(int indx, double dt, double r, double m, double nus, double nu
 	B = Coefficient Matrix for D X
 	C = Coefficient Matrix for D^2 X
 	K = Vector of known RHS quantities
+	
+	These are defined on the RHS
 	
 */
 	double complex A[3][3], B[3][3], C[3][3], F[3];
@@ -175,6 +190,14 @@ void get_matrices(int indx, double dt, double r, double m, double nus, double nu
 	A[1][1] += -nus*(gams+1+2*m2)/r2;
 	A[1][2] += 0;
 	
+	A[0][0] -= (2./3)*(nus*(gams -1)/r2);
+	A[0][1] -= (2./3)*(-nus*I*m*(gams-1)/r2);
+	
+	A[1][0] -= (2./3)*(-nus*I*m/r2);
+	A[1][1] -= (2./3)*(-nus*m2/r2);
+
+
+	
 /* bulk viscosity */
 	A[0][0] += nub*(gamb -1)/r2 ;
 	A[0][1] += -nub*I*m*(gamb-1)/r2;
@@ -214,6 +237,12 @@ void get_matrices(int indx, double dt, double r, double m, double nus, double nu
 	B[1][1] += nus*(gams+1)/r;
 	B[1][2] += nus*dlomk*omk;
 	
+	
+	B[0][0] -= (2./3)*(nus*(gams+1)/r);
+	B[0][1] -=  (2./3)*(-nus*I*m/r);
+	
+	B[1][0] -=  (2./3)*(-nus*I*m/r);
+	
 /* bulk viscosity */
 
 	B[0][0] += nub*(gamb+1)/r;
@@ -251,6 +280,8 @@ void get_matrices(int indx, double dt, double r, double m, double nus, double nu
 	C[2][0] = 0;
 	C[2][1] = 0;
 	C[2][2] = 0;
+	
+	C[0][0] -= (2./3)*nus;
 	
 /* bulk viscosity */
 	
@@ -350,6 +381,9 @@ void get_matrices(int indx, double dt, double r, double m, double nus, double nu
 
 void get_bc_matrix(int type, double complex u, double complex v, double complex s) {
 	int i,j;
+	
+	double e_out = .1;
+	double e_in = .1;
 
 
 	for(i=0;i<3;i++) {
@@ -359,32 +393,52 @@ void get_bc_matrix(int type, double complex u, double complex v, double complex 
 			if (i==j)	M[i][j] = 1;
 			else M[i][j] = 0;	
 		}
+		K[i] = 0;
 	}
 	
 #ifdef INFINITE
-	if (type==0)  {
-//		U[0][0] = -1;
-//		U[1][1] = -1;
+	if (type==istart)  {
+
+
+/* Fixed Eccentricity inner boundary */
 	
+//  		U[2][2] = -1;
+// 		K[0] =  I*(bfld->v[istart]) * e_in * cexp(I*0);
+// 		K[1] =  .5*(bfld->v[istart]) * e_in * cexp(I*0);
+
+
+/* Zero Eccentricity gradient inner boundary */		
+		
+// 		M[1][0] = -I;
+// 		U[0][0] = -1;
+// 		U[2][2] = -1;
+
+
+/* Zero gradient inner boundary		*/
+		U[0][0] = -1;
+		U[1][1] = -1;
 		U[2][2] = -1;
-//		K[0] = 0;
-//		K[1] = 0;
-		K[0] =  u_in_bc;
-		K[1] = v_in_bc;
-		K[2] = 0;
-	
 	}
 	
-	if (type==NTOT-1) {
-//		L[0][0] = -1;
-//		L[1][1] = -1;
-	
+	if (type==iend-1) {
+
+/* Fixed Eccentricity outer boundary */	
 		L[2][2] = -1;
-//		K[0] = 0;
-//		K[1] = 0;
-		K[0] =  u_out_bc;
-		K[1] = v_out_bc;
-		K[2] = 0;
+		K[0] =  I*(bfld->v[iend-1]) * e_out * cexp(I*0);
+		K[1] = .5*(bfld->v[iend-1]) * e_out * cexp(I*0);
+
+/* Zero Eccentricity gradient outer boundary */		
+
+// 	M[1][0] = -I;
+// 	L[0][0] = 1;
+// 	L[2][2] = 1;
+
+
+/* Zero gradient outer boundary		*/
+//  		L[0][0] = -1;
+// 		L[1][1] = -1;
+// 		L[2][2] = -1;
+
 	}
 
 #else	
